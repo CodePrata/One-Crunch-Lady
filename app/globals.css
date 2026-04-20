@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hero-yellow: #ffd700;
+  --power-red: #d32f2f;
+  --cookie-brown: #8d6e63;
+  --flour-white: #fafafa;
+}
+
+body {
+  background-color: var(--flour-white);
+  color: var(--cookie-brown);
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-bangers), Impact, sans-serif;
+}
+
+@layer utilities {
+  .impact-border {
+    @apply border-[3px] border-black shadow-[4px_4px_0_0_#000000];
+  }
+}

@@ -1,0 +1,90 @@
+# One Crunch Lady — Project Standards & Context
+
+## 1. Tech Stack & Versioning
+- **Framework:** Next.js 14 (App Router) - Strictly use 'use client' vs 'use server' directives.
+- **Language:** TypeScript (Strict mode). Use interfaces for models, not types where possible.
+- **Styling:** Tailwind CSS (Mobile-first approach).
+- **Backend/DB:** Supabase (PostgreSQL + Auth + RLS).
+- **Infrastructure:** Vercel (Deployment), Cloudinary (Images), Resend (Email).
+
+## 2. Brand Identity & Design Tokens
+Always adhere to these colors and the "Manga/Comic Book" aesthetic:
+- **Hero Yellow:** `#FFD700` (Backgrounds/Accents)
+- **Power Red:** `#D32F2F` (CTAs/Critical actions)
+- **Cookie Brown:** `#8D6E63` (Typography/Secondary elements)
+- **Flour White:** `#FAFAFA` (Base backgrounds)
+- **UI Style:** Bold borders (2px+), high contrast, "impact" SVG elements, and comic-panel layouts. 
+- **Accessibility Note:** Do NOT put white text on Hero Yellow; use Cookie Brown or black for contrast.
+
+## 3. Database & Security (Supabase)
+- **Naming Convention:** Use `snake_case` for database columns and `camelCase` for TypeScript interfaces.
+- **RLS:** Never suggest code that bypasses Row Level Security. 
+- **Order Refs:** All human-facing IDs must follow the `OCL-YYMM-XXXX` format.
+- **Sensitive Data:** PayNow and WhatsApp numbers must be pulled from `process.env`, never hardcoded.
+
+## 4. Code Architecture
+- **Directory Structure:**
+  - `/app`: Pages, Layouts, and API routes.
+  - `/components/ui`: Atomic components (buttons, inputs).
+  - `/components/features`: Domain-specific components (OrderForm, ProductCard).
+  - `/lib`: Singleton clients (supabase, cloudinary) and utility functions.
+  - `/hooks`: Custom React hooks.
+  - `/types`: Shared TypeScript definitions.
+- **Data Fetching:** Prefer Server Components for data fetching. Use `Suspense` with skeletons for loading states.
+
+## 5. Development Guidelines
+- **Images:** Always use Next.js `<Image />` component with Cloudinary optimization.
+- **Forms:** Use `react-hook-form` + `zod` for all validation.
+- **Emails:** Use `React Email` templates for Resend dispatching.
+- **Error Handling:** Every API route must have a try/catch block and return standard JSON error responses.
+
+## 6. AI Interaction Rules
+- Be concise. Don't explain basic React concepts.
+- If a task involves a change to the database, remind the user to run a migration.
+- When generating UI, check the WCAG AA contrast ratios for the brand colors automatically.
+- Ensure all tap targets are at least 44x44px for mobile users.
+# One Crunch Lady — Project Standards & Context
+
+## 1. Tech Stack & Versioning
+- **Framework:** Next.js 14 (App Router) - Strictly use 'use client' vs 'use server' directives.
+- **Language:** TypeScript (Strict mode). Use interfaces for models, not types where possible.
+- **Styling:** Tailwind CSS (Mobile-first approach).
+- **Backend/DB:** Supabase (PostgreSQL + Auth + RLS).
+- **Infrastructure:** Vercel (Deployment), Cloudinary (Images), Resend (Email).
+
+## 2. Brand Identity & Design Tokens
+Always adhere to these colors and the "Manga/Comic Book" aesthetic:
+- **Hero Yellow:** `#FFD700` (Backgrounds/Accents)
+- **Power Red:** `#D32F2F` (CTAs/Critical actions)
+- **Cookie Brown:** `#8D6E63` (Typography/Secondary elements)
+- **Flour White:** `#FAFAFA` (Base backgrounds)
+- **UI Style:** Bold borders (2px+), high contrast, "impact" SVG elements, and comic-panel layouts. 
+- **Accessibility Note:** Do NOT put white text on Hero Yellow; use Cookie Brown or black for contrast.
+
+## 3. Database & Security (Supabase)
+- **Naming Convention:** Use `snake_case` for database columns and `camelCase` for TypeScript interfaces.
+- **RLS:** Never suggest code that bypasses Row Level Security. 
+- **Order Refs:** All human-facing IDs must follow the `OCL-YYMM-XXXX` format.
+- **Sensitive Data:** PayNow and WhatsApp numbers must be pulled from `process.env`, never hardcoded.
+
+## 4. Code Architecture
+- **Directory Structure:**
+  - `/app`: Pages, Layouts, and API routes.
+  - `/components/ui`: Atomic components (buttons, inputs).
+  - `/components/features`: Domain-specific components (OrderForm, ProductCard).
+  - `/lib`: Singleton clients (supabase, cloudinary) and utility functions.
+  - `/hooks`: Custom React hooks.
+  - `/types`: Shared TypeScript definitions.
+- **Data Fetching:** Prefer Server Components for data fetching. Use `Suspense` with skeletons for loading states.
+
+## 5. Development Guidelines
+- **Images:** Always use Next.js `<Image />` component with Cloudinary optimization.
+- **Forms:** Use `react-hook-form` + `zod` for all validation.
+- **Emails:** Use `React Email` templates for Resend dispatching.
+- **Error Handling:** Every API route must have a try/catch block and return standard JSON error responses.
+
+## 6. AI Interaction Rules
+- Be concise. Don't explain basic React concepts.
+- If a task involves a change to the database, remind the user to run a migration.
+- When generating UI, check the WCAG AA contrast ratios for the brand colors automatically.
+- Ensure all tap targets are at least 44x44px for mobile users.

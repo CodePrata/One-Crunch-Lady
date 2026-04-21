@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { createOrder } from "@/app/actions/orders";
@@ -379,10 +380,10 @@ export default function OrderForm({
               </div>
 
               <div>
-                <label className="flex items-start gap-2 text-sm text-cookie-brown">
+                <label className="flex items-center gap-2 text-sm text-cookie-brown">
                   <input
                     type="checkbox"
-                    className="tap-target mt-1 h-5 w-5 border-2 border-cookie-brown"
+                    className="appearance-none h-4 w-4 shrink-0 border-2 border-cookie-brown rounded-sm checked:bg-cookie-brown focus:ring-1 focus:ring-cookie-brown transition-all"
                     aria-label="Acknowledge payment proof requirement"
                     aria-describedby="paymentAcknowledgedHelp"
                     {...register("paymentAcknowledged")}
@@ -401,6 +402,20 @@ export default function OrderForm({
             </div>
           ) : null}
         </div>
+
+        {step === STEP_LABELS.length - 1 ? (
+          <p className="mt-4 text-xs leading-relaxed text-cookie-brown">
+            By submitting, you agree we may use your name, email, and phone to fulfil this
+            order as described in our{" "}
+            <Link
+              href="/privacy"
+              className="font-semibold text-power-red underline underline-offset-2"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        ) : null}
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {step > 0 ? (

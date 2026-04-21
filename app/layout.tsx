@@ -74,27 +74,21 @@ export default function RootLayout({
                   Comic-crunch cookies with bold flavor and heart.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 text-cookie-brown desktop:items-end">
+              <div className="flex flex-col text-cookie-brown desktop:items-end">
                 <a
                   href={whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="tap-target inline-flex items-center text-base font-semibold underline underline-offset-4"
+                  className="tap-target inline-flex items-center text-base font-semibold "
                 >
                   WhatsApp Us
                 </a>
-                <a
-                  href="#"
-                  className="tap-target inline-flex items-center text-sm underline underline-offset-4"
-                >
-                  PDPA
-                </a>
-                <a
-                  href="#"
-                  className="tap-target inline-flex items-center text-sm underline underline-offset-4"
+                <Link
+                  href="/privacy"
+                  className="tap-target -mt-2 inline-flex items-center text-sm"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </div>
             </div>
           </footer>

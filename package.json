@@ -13,12 +13,15 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
     "@vercel/analytics": "^2.0.1",
     "next": "14.2.35",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-hook-form": "^7.72.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^20",

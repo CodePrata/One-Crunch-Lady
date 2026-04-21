@@ -28,4 +28,51 @@ h6 {
   .impact-border {
     @apply border-[3px] border-black shadow-[4px_4px_0_0_#000000];
   }
+
+  .tap-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .responsive-shell {
+    width: min(100%, 375px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-sunburst {
+    background-color: var(--hero-yellow);
+    background-image: repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 255, 255, 0.45) 0deg 10deg,
+      rgba(255, 215, 0, 0.2) 10deg 20deg
+    );
+  }
+
+  .impact-lines {
+    animation: impact-pop 700ms ease-out both;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-shell {
+    width: min(100%, 768px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-shell {
+    width: min(100%, 1280px);
+  }
+}
+
+@keyframes impact-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

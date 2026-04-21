@@ -9,6 +9,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        mobile: "375px",
+        tablet: "768px",
+        desktop: "1280px",
+      },
       colors: {
         "hero-yellow": "#FFD700",
         "power-red": "#D32F2F",

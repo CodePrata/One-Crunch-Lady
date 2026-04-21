@@ -5,7 +5,6 @@ export interface Product {
   description: string;
   price: number;
   imageUrl: string;
-  crunchFactor: number;
   ingredients: string[];
   isAvailable: boolean;
 }

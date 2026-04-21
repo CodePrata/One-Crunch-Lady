@@ -18,7 +18,11 @@ export async function middleware(request: NextRequest) {
     return new NextResponse("Method Not Allowed", { status: 405 });
   }
 
-  if (!pathname.startsWith("/admin") || pathname.startsWith("/admin/login")) {
+  if (
+    !pathname.startsWith("/admin") ||
+    pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/admin/reset-password")
+  ) {
     return NextResponse.next();
   }
 

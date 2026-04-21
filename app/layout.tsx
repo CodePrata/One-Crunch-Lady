@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { Bangers, Inter } from "next/font/google";
+import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,15 +39,22 @@ export default function RootLayout({
         <div className="min-h-screen bg-flour-white">
           <header className="sticky top-0 z-50 border-b-[3px] border-cookie-brown bg-flour-white">
             <div className="responsive-shell flex items-center justify-between px-4 py-3 tablet:px-6 desktop:px-8">
+            <Link
+              href="/"
+              className="tap-target inline-flex items-center"
+              aria-label="One Crunch Lady home"
+            >
+              <Image
+                src="/ocl_logo-nobg.png" // Path relative to the public folder
+                alt="One Crunch Lady Logo"
+                width={120}
+                height={60}
+                className="h-auto w-auto object-contain"
+                priority
+              />
+            </Link>
               <a
-                href="/"
-                className="tap-target inline-flex items-center text-2xl font-display uppercase tracking-wide text-cookie-brown"
-                aria-label="One Crunch Lady home"
-              >
-                One Crunch Lady
-              </a>
-              <a
-                href="/#order-now"
+                href="/#order-form"
                 className="tap-target inline-flex items-center justify-center rounded-lg border-[3px] border-cookie-brown bg-power-red px-4 font-semibold text-flour-white transition hover:brightness-95"
               >
                 Order Now

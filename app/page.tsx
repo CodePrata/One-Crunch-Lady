@@ -2,6 +2,9 @@ import OrderForm from "@/components/features/OrderForm";
 import ProductCard from "@/components/features/ProductCard";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ProductRow {
   id: string;
   name: string;
@@ -34,7 +37,8 @@ export default async function Home() {
       "id,name,slug,description,price,image_url,ingredients,is_available,created_at"
     )
     .eq("is_available", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .setHeader('Cache-Control', 'no-cache');
 
   if (error) {
     throw new Error(`Failed to load products: ${error.message}`);
@@ -88,7 +92,7 @@ export default async function Home() {
                 grit, midnight baking sessions, and a dream to turn every bite
                 into a bold memory.
               </p>
-              <span className="mt-5 inline-flex rounded-md border-[3px] border-cookie-brown bg-power-red px-4 py-2 text-sm font-bold uppercase tracking-wider text-flour-white">
+              <span className="mt-5 text-base font-bold leading-relaxed text-cookie-brown tablet:text-lg">
                 Baked with Mom Strength
               </span>
             </div>
@@ -100,7 +104,7 @@ export default async function Home() {
         <div className="responsive-shell px-4 pb-8 tablet:px-6 desktop:px-8">
           <div className="mb-5 flex items-end justify-between gap-3">
             <h2 className="font-display text-4xl uppercase text-cookie-brown tablet:text-5xl">
-              Launch Flavors
+              Flavors
             </h2>
             <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
               Fresh Batch

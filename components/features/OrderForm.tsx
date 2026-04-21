@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { createClient } from "@/lib/supabase/client";
+import { createOrder } from "@/app/actions/orders";
 import {
   type OrderFormValues,
   orderSchema,
@@ -31,7 +31,6 @@ export default function OrderForm({
   whatsappNumber,
 }: OrderFormProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [step, setStep] = useState(0);
   const [isCopySuccess, setIsCopySuccess] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -127,59 +126,17 @@ export default function OrderForm({
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmissionError(null);
+    const result = await createOrder(values);
 
-    const selectedOrderItems = products
-      .map((product) => {
-        const quantity = values.quantities?.[product.id] ?? 0;
-        return {
-          productId: product.id,
-          productName: product.name,
-          quantity,
-          unitPrice: product.price,
-          subtotal: quantity * product.price,
-        };
-      })
-      .filter((item) => item.quantity > 0);
-
-    const totalPrice = selectedOrderItems.reduce(
-      (sum, item) => sum + item.subtotal,
-      0
-    );
-
-    const { data, error } = await supabase
-      .from("orders")
-      .insert({
-        customer_name: values.customerName,
-        customer_email: values.customerEmail,
-        customer_phone: values.customerPhone,
-        order_items: selectedOrderItems,
-        total_price: totalPrice,
-        idempotency_token: values.idempotencyToken,
-      })
-      .select("order_ref,total_price")
-      .single();
-
-    if (error) {
-      if (error.code === "23505") {
-        const { data: existingOrder } = await supabase
-          .from("orders")
-          .select("order_ref")
-          .eq("idempotency_token", values.idempotencyToken)
-          .maybeSingle();
-
-        if (existingOrder?.order_ref) {
-          router.replace(`/order/success/${existingOrder.order_ref}`);
-          return;
-        }
-      }
-
+    if (!result.success || !result.orderRef) {
       setSubmissionError(
-        "We could not submit your order right now. Tap WhatsApp below to place your order directly."
+        result.error ??
+          "We could not submit your order right now. Tap WhatsApp below to place your order directly."
       );
       return;
     }
 
-    router.replace(`/order/success/${data.order_ref}`);
+    router.replace(`/order/success/${result.orderRef}`);
   });
 
   const whatsappHref = whatsappNumber

@@ -1,4 +1,6 @@
+import "server-only";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 function getRequiredEnvVar(name: string): string {
@@ -11,7 +13,21 @@ function getRequiredEnvVar(name: string): string {
   return value;
 }
 
-export function createClient() {
+export function supabaseAdmin() {
+  const supabaseUrl = getRequiredEnvVar("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRoleKey = getRequiredEnvVar("SUPABASE_SERVICE_ROLE_KEY");
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+export const createClient = supabaseAdmin;
+
+export function supabaseServerAuth() {
   const cookieStore = cookies();
   const supabaseUrl = getRequiredEnvVar("NEXT_PUBLIC_SUPABASE_URL");
   const supabaseAnonKey = getRequiredEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY");
@@ -27,7 +43,7 @@ export function createClient() {
             cookieStore.set(name, value, options);
           });
         } catch {
-          // Server Components cannot set cookies directly in some contexts.
+          // Some server contexts are read-only for cookies.
         }
       },
     },

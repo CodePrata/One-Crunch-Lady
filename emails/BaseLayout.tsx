@@ -37,7 +37,7 @@ export default function BaseLayout({
       <Body style={bodyStyle}>
         <Container style={containerStyle}>
           <Section style={headerStyle}>
-            <Img src="/logo.png" alt="One Crunch Lady logo" width="120" />
+            <Img src="/ocl_logo-nobg.png" alt="One Crunch Lady logo" width="120" />
           </Section>
 
           <Section style={contentStyle}>{children}</Section>

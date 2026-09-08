@@ -26,6 +26,7 @@ export default function AddToCartButton({
   variant = "icon",
 }: AddToCartButtonProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const showToast = useCartStore((state) => state.showToast);
   const [justAdded, setJustAdded] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -39,6 +40,7 @@ export default function AddToCartButton({
 
   function handleClick() {
     addItem(productId);
+    showToast(`${productName} added to cart`);
     setJustAdded(true);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

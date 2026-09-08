@@ -15,10 +15,16 @@ export interface CartLineItem {
   quantity: number;
 }
 
+export interface CartToast {
+  id: number;
+  message: string;
+}
+
 interface CartState {
   items: CartLineItem[];
   hasHydrated: boolean;
   isOpen: boolean;
+  toast: CartToast | null;
   setHasHydrated: (value: boolean) => void;
   addItem: (productId: string, quantity?: number) => void;
   removeItem: (productId: string) => void;
@@ -37,7 +43,14 @@ interface CartState {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
+  /** Shows a brief confirmation toast (e.g. "X added to cart"). Never persisted. */
+  showToast: (message: string) => void;
+  /** Clears the toast only if `id` still matches the current one - guards
+   *  against a stale auto-dismiss timer clearing a newer toast. */
+  dismissToast: (id: number) => void;
 }
+
+let toastIdCounter = 0;
 
 function clampQuantity(quantity: number): number {
   if (!Number.isFinite(quantity)) {
@@ -52,6 +65,7 @@ export const useCartStore = create<CartState>()(
       items: [],
       hasHydrated: false,
       isOpen: false,
+      toast: null,
 
       setHasHydrated: (value) => set({ hasHydrated: value }),
 
@@ -103,6 +117,15 @@ export const useCartStore = create<CartState>()(
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+
+      showToast: (message) => {
+        toastIdCounter += 1;
+        set({ toast: { id: toastIdCounter, message } });
+      },
+
+      dismissToast: (id) => {
+        set((state) => (state.toast?.id === id ? { toast: null } : state));
+      },
     }),
     {
       name: CART_STORAGE_KEY,

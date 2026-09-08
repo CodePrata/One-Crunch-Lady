@@ -54,9 +54,13 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
 
   return (
     <div>
-      {categories.length > 2 ? (
+      {/* Renders once there's a real bake-type to filter by (2+ entries:
+          "All" plus at least one category) - a single-category catalog
+          still gets a working "All / Cookies" toggle rather than being
+          hidden entirely, and it grows on its own as categories are added. */}
+      {categories.length > 1 ? (
         <div
-          className="mb-5 flex gap-2 overflow-x-auto pb-1"
+          className="mb-5 flex items-center gap-2 overflow-x-auto pb-1"
           role="tablist"
           aria-label="Filter by bake type"
         >
@@ -69,10 +73,10 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveFilter(category)}
-                className={`tap-target shrink-0 whitespace-nowrap rounded-full border-2 px-4 text-sm font-semibold transition ${
+                className={`tap-target shrink-0 whitespace-nowrap rounded-full border-2 border-cookie-brown font-semibold transition-[font-size,padding,background-color,color] duration-300 ease-out ${
                   isActive
-                    ? "border-cookie-brown bg-power-red text-flour-white"
-                    : "border-cookie-brown bg-flour-white text-cookie-brown hover:bg-hero-yellow/30"
+                    ? "bg-power-red px-5 py-1.5 text-4xl text-flour-white tablet:text-5xl"
+                    : "bg-flour-white px-4 py-2 text-sm text-cookie-brown hover:bg-hero-yellow/30"
                 }`}
               >
                 {category}

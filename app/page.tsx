@@ -1,6 +1,7 @@
 import CartBubble from "@/components/features/CartBubble";
 import { CartCatalogProvider } from "@/components/features/CartCatalogProvider";
 import CartDrawer from "@/components/features/CartDrawer";
+import CartToast from "@/components/features/CartToast";
 import IntroLanding from "@/components/features/IntroLanding";
 import ProductCatalog from "@/components/features/ProductCatalog";
 import { createClient } from "@/lib/supabase/server";
@@ -110,7 +111,7 @@ export default async function Home() {
             <div className="responsive-shell px-4 pb-16 tablet:px-6 desktop:px-8">
               <div className="mb-5 flex items-end justify-between gap-3">
                 <h2 className="font-display text-4xl uppercase text-cookie-brown tablet:text-5xl">
-                  Flavors
+                  Flavours
                 </h2>
                 <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
                   Fresh Batch
@@ -123,6 +124,7 @@ export default async function Home() {
         </main>
         <CartBubble />
         <CartDrawer />
+        <CartToast />
       </IntroLanding>
     </CartCatalogProvider>
   );

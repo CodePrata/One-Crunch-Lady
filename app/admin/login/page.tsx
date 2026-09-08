@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-const ADMIN_EMAIL = "amadeus12321@gmail.com";
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +19,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: ADMIN_EMAIL,
+      email,
       password,
     });
 
@@ -55,9 +54,10 @@ export default function AdminLoginPage() {
             <input
               id="adminEmail"
               type="email"
-              value={ADMIN_EMAIL}
-              readOnly
-              className="tap-target w-full rounded-md border-2 border-cookie-brown bg-cookie-brown/10 px-3 text-cookie-brown"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
             />
           </div>
 

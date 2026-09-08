@@ -47,16 +47,20 @@ interface UpdateProductInput {
   ingredients: string;
 }
 
-const ADMIN_EMAIL = "amadeus12321@gmail.com";
-
 async function assertAdminAccess() {
   const authClient = supabaseServerAuth();
   const {
     data: { user },
-    error,
+    error: userError,
   } = await authClient.auth.getUser();
 
-  if (error || !user || user.email !== ADMIN_EMAIL) {
+  if (userError || !user) {
+    throw new Error("Unauthorized admin access.");
+  }
+
+  const { data: isAdmin, error: isAdminError } = await authClient.rpc("is_admin");
+
+  if (isAdminError || isAdmin !== true) {
     throw new Error("Unauthorized admin access.");
   }
 }

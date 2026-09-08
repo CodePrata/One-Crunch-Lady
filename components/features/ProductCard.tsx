@@ -1,12 +1,15 @@
 import Image from "next/image";
+import AddToCartButton from "@/components/features/AddToCartButton";
 import ProductDetail from "@/components/features/ProductDetail";
 import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductCardProps {
+  id: string;
   name: string;
   description: string;
   price: number;
   imageUrl: string | null;
+  category: string | null;
   ingredients: string[];
   isAvailable: boolean;
 }
@@ -47,17 +50,19 @@ function ProductPlaceholder({ name }: { name: string }) {
 }
 
 export default function ProductCard({
+  id,
   name,
   description,
   price,
   imageUrl,
+  category,
   ingredients,
   isAvailable,
 }: ProductCardProps) {
   const shortDescription = description.length > 95 ? `${description.slice(0, 92)}...` : description;
 
   return (
-    <article className="relative flex h-full flex-col rounded-xl border-2 border-cookie-brown bg-flour-white p-4">
+    <article className="relative flex h-full flex-col rounded-xl border-[3px] border-cookie-brown bg-flour-white p-4">
       {!isAvailable ? (
         <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-cookie-brown/85">
           <span className="rounded-md border-2 border-flour-white bg-power-red px-4 py-2 font-display text-3xl uppercase text-flour-white">
@@ -80,14 +85,24 @@ export default function ProductCard({
         )}
       </div>
 
-      <h3 className="font-display text-4xl uppercase leading-none text-cookie-brown">{name}</h3>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-cookie-brown">{shortDescription}</p>
+      {category ? (
+        <p className="text-xs font-semibold uppercase tracking-wide text-cookie-brown/60">
+          {category}
+        </p>
+      ) : null}
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <p className="rounded-md border-2 border-cookie-brown bg-hero-yellow px-3 py-1 text-lg font-extrabold text-cookie-brown">
+      <div className="mt-1 flex items-start justify-between gap-3">
+        <h3 className="font-display text-3xl uppercase leading-none text-cookie-brown">{name}</h3>
+        <p className="shrink-0 pt-0.5 text-lg font-extrabold text-cookie-brown">
           ${price.toFixed(2)}
         </p>
+      </div>
+
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-cookie-brown">{shortDescription}</p>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
         <ProductDetail
+          id={id}
           name={name}
           description={description}
           price={price}
@@ -95,6 +110,7 @@ export default function ProductCard({
           ingredients={ingredients}
           isAvailable={isAvailable}
         />
+        <AddToCartButton productId={id} productName={name} isAvailable={isAvailable} />
       </div>
     </article>
   );

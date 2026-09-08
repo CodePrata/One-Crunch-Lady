@@ -28,6 +28,9 @@
  *   .z-cart-bubble  (45) -> floating cart bubble
  *   .z-modal        (50) -> product detail modal / dialogs
  *   .z-drawer       (60) -> cart drawer (slides above everything else)
+ *   .z-splash       (70) -> one-time full-viewport hero intro overlay,
+ *                           the only thing that should ever cover the
+ *                           cart drawer
  */
 
 :root {
@@ -35,6 +38,16 @@
   --power-red: #d32f2f;
   --cookie-brown: #8d6e63;
   --flour-white: #fafafa;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -107,6 +120,10 @@ h6 {
 
   .z-drawer {
     z-index: 60;
+  }
+
+  .z-splash {
+    z-index: 70;
   }
 }
 

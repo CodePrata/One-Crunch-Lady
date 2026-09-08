@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
+import AddToCartButton from "@/components/features/AddToCartButton";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductDetailProps {
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -50,6 +52,7 @@ function ProductPlaceholder({ name }: { name: string }) {
 }
 
 export default function ProductDetail({
+  id,
   name,
   description,
   price,
@@ -58,7 +61,6 @@ export default function ProductDetail({
   isAvailable,
 }: ProductDetailProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showIngredients, setShowIngredients] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
 
@@ -90,84 +92,86 @@ export default function ProductDetail({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown bg-flour-white px-4 text-sm font-semibold text-cookie-brown transition hover:bg-hero-yellow/30"
+        className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown underline underline-offset-2 transition hover:text-power-red"
       >
         View Details
       </button>
 
       {isOpen ? (
-        <div className="z-modal fixed inset-0 flex items-end justify-center bg-black/45 tablet:items-center">
+        <div
+          className="z-modal fixed inset-0 flex items-end justify-center bg-black/45 tablet:items-center"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
+        >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby={headingId}
             tabIndex={-1}
             ref={dialogRef}
-            className="w-full max-w-2xl rounded-t-2xl border-[3px] border-cookie-brown bg-flour-white p-5 outline-none tablet:rounded-2xl tablet:p-6"
+            className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-t-2xl border-[3px] border-cookie-brown bg-flour-white outline-none tablet:rounded-2xl"
           >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <h2
-                id={headingId}
-                className="font-display text-4xl uppercase leading-none text-cookie-brown"
-              >
-                {name}
-              </h2>
+            <div className="flex items-start justify-between gap-4 p-5 pb-4 tablet:p-6 tablet:pb-4">
+              <div className="flex items-start gap-3">
+                <h2
+                  id={headingId}
+                  className="font-display text-4xl uppercase leading-none text-cookie-brown"
+                >
+                  {name}
+                </h2>
+                <p className="shrink-0 pt-1 text-lg font-bold text-cookie-brown">
+                  {formattedPrice}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="tap-target rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+                className="tap-target shrink-0 rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
                 aria-label="Close product details"
               >
                 Close
               </button>
             </div>
 
-            <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
-              {imageUrl ? (
-                <Image
-                  src={getOptimizedImage(imageUrl)}
-                  alt={name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 767px) 100vw, 700px"
-                />
-              ) : (
-                <ProductPlaceholder name={name} />
-              )}
-            </div>
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-5 tablet:px-6 tablet:pb-6">
+              <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
+                {imageUrl ? (
+                  <Image
+                    src={getOptimizedImage(imageUrl)}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 767px) 100vw, 700px"
+                  />
+                ) : (
+                  <ProductPlaceholder name={name} />
+                )}
+              </div>
 
-            <p className="text-base text-cookie-brown">{description}</p>
-            <p className="mt-3 inline-flex rounded-md border-2 border-cookie-brown bg-hero-yellow px-3 py-1 text-lg font-bold text-cookie-brown">
-              {formattedPrice}
-            </p>
+              <p className="text-base text-cookie-brown">{description}</p>
 
-            <div className="mt-5">
-              <button
-                type="button"
-                onClick={() => setShowIngredients((current) => !current)}
-                className="tap-target inline-flex items-center rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold text-cookie-brown"
-                aria-expanded={showIngredients}
-              >
-                {showIngredients ? "Hide Ingredients" : "Show Ingredients"}
-              </button>
-
-              {showIngredients ? (
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-cookie-brown">
+              <div className="mt-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+                  Ingredients
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-cookie-brown">
                   {ingredients.map((ingredient) => (
                     <li key={ingredient}>{ingredient}</li>
                   ))}
                 </ul>
-              ) : null}
-            </div>
+              </div>
 
-            <div className="mt-6">
-              <button
-                type="button"
-                disabled={!isAvailable}
-                className="tap-target inline-flex w-full items-center justify-center rounded-md border-[3px] border-cookie-brown bg-power-red px-4 text-base font-bold text-flour-white disabled:cursor-not-allowed disabled:bg-cookie-brown"
-              >
-                Add to Order
-              </button>
+              <div className="mt-6">
+                <AddToCartButton
+                  productId={id}
+                  productName={name}
+                  isAvailable={isAvailable}
+                  variant="full"
+                />
+              </div>
             </div>
           </div>
         </div>

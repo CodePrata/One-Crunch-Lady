@@ -269,7 +269,7 @@ export default function OrderForm({
                 return (
                   <div
                     key={product.id}
-                    className="rounded-lg border-2 border-cookie-brown p-3"
+                    className="rounded-xl border-2 border-cookie-brown p-3"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -317,7 +317,7 @@ export default function OrderForm({
                 </p>
               ) : null}
 
-              <div className="rounded-lg border-2 border-cookie-brown bg-hero-yellow/40 p-4">
+              <div className="rounded-xl border-2 border-cookie-brown bg-hero-yellow/40 p-4">
                 <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
                   Live Subtotal
                 </p>
@@ -330,7 +330,7 @@ export default function OrderForm({
 
           {step === 2 ? (
             <div className="space-y-5">
-              <div className="rounded-lg border-2 border-cookie-brown p-4">
+              <div className="rounded-xl border-2 border-cookie-brown p-4">
                 <p className="font-display text-3xl uppercase text-cookie-brown">
                   Order Summary
                 </p>
@@ -361,7 +361,7 @@ export default function OrderForm({
                 </p>
               </div>
 
-              <div className="rounded-lg border-2 border-cookie-brown p-4">
+              <div className="rounded-xl border-2 border-cookie-brown p-4">
                 <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
                   PayNow Number
                 </p>

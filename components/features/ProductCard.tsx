@@ -54,8 +54,7 @@ export default function ProductCard({
   ingredients,
   isAvailable,
 }: ProductCardProps) {
-  const shortDescription =
-    description.length > 95 ? `${description.slice(0, 92)}...` : description;
+  const shortDescription = description.length > 95 ? `${description.slice(0, 92)}...` : description;
 
   return (
     <article className="relative flex h-full flex-col rounded-xl border-2 border-cookie-brown bg-flour-white p-4">
@@ -67,7 +66,7 @@ export default function ProductCard({
         </div>
       ) : null}
 
-      <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-lg border-2 border-cookie-brown bg-flour-white">
+      <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
         {imageUrl ? (
           <Image
             src={getOptimizedImage(imageUrl)}
@@ -81,12 +80,8 @@ export default function ProductCard({
         )}
       </div>
 
-      <h3 className="font-display text-4xl uppercase leading-none text-cookie-brown">
-        {name}
-      </h3>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-cookie-brown">
-        {shortDescription}
-      </p>
+      <h3 className="font-display text-4xl uppercase leading-none text-cookie-brown">{name}</h3>
+      <p className="mt-3 flex-1 text-sm leading-relaxed text-cookie-brown">{shortDescription}</p>
 
       <div className="mt-4 flex items-center justify-between gap-3">
         <p className="rounded-md border-2 border-cookie-brown bg-hero-yellow px-3 py-1 text-lg font-extrabold text-cookie-brown">

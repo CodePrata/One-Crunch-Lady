@@ -71,7 +71,7 @@ export default async function Home() {
               <a
                 id="order-now"
                 href="#order-form"
-                className="tap-target mt-6 inline-flex items-center justify-center rounded-lg border-[3px] border-cookie-brown bg-power-red px-6 text-base font-semibold text-flour-white"
+                className="tap-target mt-6 inline-flex items-center justify-center rounded-md border-[3px] border-cookie-brown bg-power-red px-6 text-base font-semibold text-flour-white"
               >
                 Order Now
               </a>

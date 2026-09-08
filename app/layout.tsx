@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${bangers.variable} antialiased`}>
         <div className="min-h-screen bg-flour-white">
-          <header className="sticky top-0 z-50 border-b-[3px] border-cookie-brown bg-flour-white">
+          <header className="z-header sticky top-0 border-b-[3px] border-cookie-brown bg-flour-white">
             <div className="responsive-shell flex items-center justify-between px-4 py-3 tablet:px-6 desktop:px-8">
             <Link
               href="/"
@@ -55,7 +55,7 @@ export default function RootLayout({
             </Link>
               <a
                 href="/#order-form"
-                className="tap-target inline-flex items-center justify-center rounded-lg border-[3px] border-cookie-brown bg-power-red px-4 font-semibold text-flour-white transition hover:brightness-95"
+                className="tap-target inline-flex items-center justify-center rounded-md border-[3px] border-cookie-brown bg-power-red px-4 font-semibold text-flour-white transition hover:brightness-95"
               >
                 Order Now
               </a>

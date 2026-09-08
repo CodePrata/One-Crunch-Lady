@@ -126,8 +126,8 @@ export async function updateOrderStatus(
         to: updatedOrder.customer_email,
         subject:
           status === "PAID"
-            ? `Order #${updatedOrder.order_ref} — Payment Received, We're Baking!`
-            : `Order #${updatedOrder.order_ref} — Ready for Pickup!`,
+            ? `Order #${updatedOrder.order_ref}: Payment Received, We're Baking!`
+            : `Order #${updatedOrder.order_ref}: Ready for Pickup!`,
         react:
           status === "PAID"
             ? PaymentConfirmedEmail({

@@ -113,7 +113,7 @@ export default function PrivacyPage() {
         </section>
 
         <p className="mt-10 rounded-md border-2 border-cookie-brown bg-flour-white/40 px-4 py-3 text-center text-sm font-semibold text-cookie-brown">
-          Baked with Mom Strength — thank you for trusting us with your order.
+          Baked with Mom Strength. Thank you for trusting us with your order.
         </p>
 
         <p className="mt-6 text-center">

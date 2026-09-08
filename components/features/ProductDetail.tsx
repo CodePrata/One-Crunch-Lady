@@ -95,7 +95,7 @@ export default function ProductDetail({
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/45 tablet:items-center">
+        <div className="z-modal fixed inset-0 flex items-end justify-center bg-black/45 tablet:items-center">
           <div
             role="dialog"
             aria-modal="true"

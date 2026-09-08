@@ -18,7 +18,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           Error
         </h1>
         <p className="mt-3 text-cookie-brown">
-          Something went wrong—tap here to order via WhatsApp instead.
+          Something went wrong. Tap here to order via WhatsApp instead.
         </p>
         <p className="mt-2 text-sm text-cookie-brown/80">{error.message}</p>
 

@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude
+ARCHITECTURE-ESSENTIALS.md
+ARCHITECTURE.md
+CLAUDE.md
+PRD.md

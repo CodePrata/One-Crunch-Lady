@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductDetailProps {
@@ -61,6 +62,8 @@ export default function ProductDetail({
   const dialogRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
 
+  useBodyScrollLock(isOpen);
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -72,12 +75,10 @@ export default function ProductDetail({
       }
     };
 
-    document.body.style.overflow = "hidden";
     dialogRef.current?.focus();
     window.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.body.style.overflow = "";
       window.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen]);

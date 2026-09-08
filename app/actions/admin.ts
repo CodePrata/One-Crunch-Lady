@@ -81,27 +81,16 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
   await assertAdminAccess();
   const supabase = supabaseAdmin();
 
-  const withCategory = await supabase
+  const { data, error } = await supabase
     .from("products")
-    .select(
-      "id,name,description,price,image_url,ingredients,category,is_available"
-    )
+    .select("id,name,description,price,image_url,ingredients,is_available")
     .order("created_at", { ascending: false });
 
-  if (withCategory.error) {
-    const fallback = await supabase
-      .from("products")
-      .select("id,name,description,price,image_url,ingredients,is_available")
-      .order("created_at", { ascending: false });
-
-    if (fallback.error) {
-      throw new Error(`Failed to fetch products: ${fallback.error.message}`);
-    }
-
-    return (fallback.data ?? []) as AdminProduct[];
+  if (error) {
+    throw new Error(`Failed to fetch products: ${error.message}`);
   }
 
-  return (withCategory.data ?? []) as AdminProduct[];
+  return (data ?? []) as AdminProduct[];
 }
 
 export async function updateOrderStatus(
@@ -262,34 +251,19 @@ export async function updateProduct(
     throw new Error("Please provide valid product details.");
   }
 
-  const payloadWithCategory = {
-    name: cleanName,
-    description: cleanDescription,
-    price: cleanPrice,
-    image_url: cleanImageUrl || null,
-    ingredients: cleanIngredients,
-  };
-
-  const withCategory = await supabase
+  const { error } = await supabase
     .from("products")
-    .update(payloadWithCategory)
+    .update({
+      name: cleanName,
+      description: cleanDescription,
+      price: cleanPrice,
+      image_url: cleanImageUrl || null,
+      ingredients: cleanIngredients,
+    })
     .eq("id", productId);
 
-  if (withCategory.error) {
-    const fallback = await supabase
-      .from("products")
-      .update({
-        name: cleanName,
-        description: cleanDescription,
-        price: cleanPrice,
-        image_url: cleanImageUrl || null,
-        ingredients: cleanIngredients,
-      })
-      .eq("id", productId);
-
-    if (fallback.error) {
-      throw new Error(`Failed to update product: ${fallback.error.message}`);
-    }
+  if (error) {
+    throw new Error(`Failed to update product: ${error.message}`);
   }
 
   revalidatePath("/admin/orders");

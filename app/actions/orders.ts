@@ -239,7 +239,16 @@ export async function createOrder(
         });
       }
     } catch (emailError) {
-      console.error("Failed to send order emails", emailError);
+      if (process.env.NODE_ENV !== "production") {
+        console.error(
+          "=== ORDER EMAIL DISPATCH FAILURE (order still succeeded) ===\n" +
+            `Order ref: ${insertedOrder.order_ref}\n` +
+            "Error:",
+          emailError
+        );
+      } else {
+        console.error("Failed to send order emails", emailError);
+      }
     }
   }
 

@@ -30,9 +30,9 @@ export const metadata: Metadata = {
   },
   description,
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.png",
     shortcut: "/favicon.ico",
-    apple: "/ocl_logo-nobg.png",
+    apple: "/icon.png",
   },
   openGraph: {
     title: "One Crunch Lady",

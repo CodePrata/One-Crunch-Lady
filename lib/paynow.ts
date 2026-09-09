@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { brandName } from "@/config/site";
 
 // Deliberately NOT marked `server-only`: every function here takes its
 // inputs as plain parameters and never reads `process.env` itself, so
@@ -10,14 +11,16 @@ import QRCode from "qrcode";
 // (rather than reaching into process.env itself) also keeps it directly
 // unit-testable outside Next's build pipeline, where the real
 // `server-only` package always throws (it's a build-time-only guard, not
-// a runtime-safe no-op under a plain Node/test runner).
+// a runtime-safe no-op under a plain Node/test runner). config/site.ts is
+// safe to import here for the same reason: it is public and has no
+// `server-only` guard of its own.
 
 const PAYNOW_GUID = "SG.PAYNOW";
 const MERCHANT_CATEGORY_CODE = "0000"; // unspecified, per EMVCo spec
 const TRANSACTION_CURRENCY_SGD = "702"; // ISO 4217 numeric code for SGD
 const COUNTRY_CODE = "SG";
 const MERCHANT_CITY = "Singapore";
-const MERCHANT_NAME = "One Crunch Lady";
+const MERCHANT_NAME = brandName;
 
 export interface PayNowQrInput {
   /** The exact order total (e.g. orders.total_price), used as the fixed transaction amount. */

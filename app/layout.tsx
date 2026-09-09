@@ -52,17 +52,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
-  // Falls back to the platform's own homepage (same pattern as
-  // whatsappHref above) so the icons always render - including in local
-  // dev, where these are typically unset - rather than silently
-  // disappearing whenever the specific handle hasn't been configured.
-  const instagramHref = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/";
-  const tiktokHref = process.env.NEXT_PUBLIC_TIKTOK_URL || "https://www.tiktok.com/";
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : null;
+  // Renders only when explicitly configured, matching the .env.example
+  // comment ("Footer icons only render when their URL is set; leave blank
+  // to hide.") - a misconfigured deploy should ship no link rather than a
+  // dead one to the platform homepage or a bare wa.me/.
+  const instagramHref = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
+  const tiktokHref = process.env.NEXT_PUBLIC_TIKTOK_URL || null;
 
   return (
     <html lang="en">
       <body className={`${inter.variable} ${bangers.variable} antialiased`}>
+        <a
+          href="#main-content"
+          className="sr-only z-[100] rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 py-2 font-semibold text-cookie-brown-dark focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        >
+          Skip to main content
+        </a>
         <div className="min-h-screen bg-flour-white">
           <header className="z-header sticky top-0 border-b-[3px] border-cookie-brown bg-flour-white">
             <div className="responsive-shell flex items-center px-4 py-2.5 tablet:px-6 desktop:px-8">
@@ -86,7 +92,7 @@ export default function RootLayout({
             </div>
           </header>
 
-          {children}
+          <div id="main-content">{children}</div>
 
           <footer className="mt-16 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
             <div className="responsive-shell grid gap-6 px-4 py-10 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
@@ -97,34 +103,42 @@ export default function RootLayout({
                 </p>
               </div>
               <div className="flex flex-col gap-3 text-cookie-brown-dark desktop:items-end">
-                <div className="flex items-center gap-3">
+                {instagramHref || tiktokHref ? (
+                  <div className="flex items-center gap-3">
+                    {instagramHref ? (
+                      <a
+                        href={instagramHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="One Crunch Lady on Instagram"
+                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
+                      >
+                        <InstagramLogo size={22} weight="bold" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                    {tiktokHref ? (
+                      <a
+                        href={tiktokHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="One Crunch Lady on TikTok"
+                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
+                      >
+                        <TiktokLogo size={22} weight="bold" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+                {whatsappHref ? (
                   <a
-                    href={instagramHref}
+                    href={whatsappHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="One Crunch Lady on Instagram"
-                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
+                    className="tap-target inline-flex items-center text-base font-semibold"
                   >
-                    <InstagramLogo size={22} weight="bold" aria-hidden="true" />
+                    WhatsApp Us
                   </a>
-                  <a
-                    href={tiktokHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="One Crunch Lady on TikTok"
-                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
-                  >
-                    <TiktokLogo size={22} weight="bold" aria-hidden="true" />
-                  </a>
-                </div>
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="tap-target inline-flex items-center text-base font-semibold"
-                >
-                  WhatsApp Us
-                </a>
+                ) : null}
                 <Link href="/privacy" className="tap-target inline-flex items-center text-sm">
                   Privacy Policy
                 </Link>

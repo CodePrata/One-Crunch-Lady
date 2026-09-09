@@ -90,7 +90,7 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
-          {visibleProducts.map((product) => (
+          {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               id={product.id}
@@ -101,6 +101,7 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
               category={product.category}
               ingredients={product.ingredients}
               isAvailable={product.isAvailable}
+              priority={index === 0}
             />
           ))}
         </div>

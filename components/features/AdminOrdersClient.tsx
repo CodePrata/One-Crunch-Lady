@@ -402,10 +402,7 @@ export default function AdminOrdersClient({
 
             <div className="flex items-center gap-3">
               <CldUploadWidget
-                uploadPreset={
-                  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ??
-                  "one_crunch_uploads"
-                }
+                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
                 options={{
                   maxFiles: 1,
                   resourceType: "image",
@@ -536,10 +533,7 @@ export default function AdminOrdersClient({
 
                   <div className="flex items-center gap-2">
                     <CldUploadWidget
-                      uploadPreset={
-                        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ??
-                        "onecrunchlady_webp"
-                      }
+                      uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
                       options={{
                         maxFiles: 1,
                         resourceType: "image",

@@ -12,6 +12,7 @@ interface ProductCardProps {
   category: string | null;
   ingredients: string[];
   isAvailable: boolean;
+  priority?: boolean;
 }
 
 function ProductPlaceholder({ name }: { name: string }) {
@@ -58,6 +59,7 @@ export default function ProductCard({
   category,
   ingredients,
   isAvailable,
+  priority = false,
 }: ProductCardProps) {
   const shortDescription = description.length > 95 ? `${description.slice(0, 92)}...` : description;
 
@@ -78,7 +80,12 @@ export default function ProductCard({
             alt={name}
             fill
             className="object-cover"
-            sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
+            // Matches the rendered card width at each breakpoint: the
+            // .responsive-shell container caps out at 375px/768px/1280px
+            // (minus its px-4/6/8 padding and the grid's gap-4), so a plain
+            // 100vw/50vw/33vw hint would overestimate on wide viewports.
+            sizes="(max-width: 767px) 343px, (max-width: 1279px) 352px, 395px"
+            priority={priority}
           />
         ) : (
           <ProductPlaceholder name={name} />

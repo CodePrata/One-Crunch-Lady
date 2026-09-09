@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import { emailFrom, resendApiKey } from "@/config/server";
+import { pickupHours } from "@/config/site";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
@@ -119,14 +121,13 @@ export async function updateOrderStatus(
     throw new Error(`Failed to update order status: ${error.message}`);
   }
 
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey && updatedOrder?.customer_email) {
+  if (updatedOrder?.customer_email) {
     const resend = new Resend(resendApiKey);
     const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
 
     try {
       await resend.emails.send({
-        from: "One Crunch Lady <orders@resend.dev>",
+        from: emailFrom,
         to: updatedOrder.customer_email,
         subject:
           status === "PAID"
@@ -142,7 +143,7 @@ export async function updateOrderStatus(
             : ReadyForPickupEmail({
                 orderRef: updatedOrder.order_ref,
                 customerName: updatedOrder.customer_name ?? "Customer",
-                pickupHours: "Mon-Sat, 10:00 AM - 7:00 PM",
+                pickupHours,
                 whatsappNumber,
               }),
       });

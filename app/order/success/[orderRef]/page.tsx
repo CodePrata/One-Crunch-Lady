@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { paynowNumber } from "@/config/server";
 import { buildPayNowQrPayload, renderPayNowQrSvg } from "@/lib/paynow";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +15,6 @@ interface SuccessPageProps {
 
 export default async function OrderSuccessPage({ params, searchParams }: SuccessPageProps) {
   const supabase = createClient();
-  const paynowNumber = process.env.PAYNOW_NUMBER ?? "PayNow unavailable";
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const { orderRef } = params;
   const accessToken = searchParams.t;
@@ -53,12 +53,14 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
 
   // Bound strictly server-side: PAYNOW_NUMBER never reaches the client,
   // and the amount/reference come from the just-committed order row, not
-  // anything client-supplied. Returns null (no QR, plain-number fallback
-  // stays visible below) if PAYNOW_NUMBER is missing or malformed.
+  // anything client-supplied. config/server.ts already guarantees
+  // PAYNOW_NUMBER is set (the app fails to boot otherwise); this still
+  // returns null (no QR, plain-number fallback stays visible below) if
+  // the configured number doesn't normalize to a valid SG mobile number.
   const qrPayload = buildPayNowQrPayload({
     amount: Number(data.total_price),
     reference: data.order_ref,
-    mobileNumber: process.env.PAYNOW_NUMBER ?? "",
+    mobileNumber: paynowNumber,
   });
   const qrSvg = qrPayload ? await renderPayNowQrSvg(qrPayload) : null;
 

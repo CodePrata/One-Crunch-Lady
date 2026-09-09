@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { dpoEmail, dpoName } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -11,13 +12,6 @@ export const metadata: Metadata = {
 // for the "Last updated" date shown on the page, so it can't silently drift
 // from what the page actually says.
 const PRIVACY_POLICY_LAST_UPDATED = "9 September 2026";
-
-// Placeholder business contact for the Data Protection Officer. PDPA
-// requires a named DPO with a published business contact - WhatsApp alone
-// does not satisfy that. Replace with the owner's real DPO name and a
-// monitored mailbox (e.g. privacy@onecrunchlady.sg) before launch.
-const DPO_NAME = "One Crunch Lady (Data Protection Officer)";
-const DPO_EMAIL = "privacy@onecrunchlady.sg";
 
 export default function PrivacyPage() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
@@ -203,14 +197,14 @@ export default function PrivacyPage() {
             this policy and for handling your requests.
           </p>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            <strong className="text-cookie-brown-dark">{DPO_NAME}</strong>
+            <strong className="text-cookie-brown-dark">{dpoName}</strong>
             <br />
             Email:{" "}
             <a
-              href={`mailto:${DPO_EMAIL}`}
+              href={`mailto:${dpoEmail}`}
               className="font-semibold text-power-red underline underline-offset-2"
             >
-              {DPO_EMAIL}
+              {dpoEmail}
             </a>
           </p>
           <p className="text-base leading-relaxed text-cookie-brown-dark">

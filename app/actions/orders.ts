@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { Resend } from "resend";
+import { emailFrom, ownerEmail, paynowNumber, resendApiKey } from "@/config/server";
 import OrderReceivedEmail from "@/emails/OrderReceivedEmail";
 import OwnerAlertEmail from "@/emails/OwnerAlertEmail";
 import { createClient } from "@/lib/supabase/server";
@@ -195,9 +196,6 @@ export async function createOrder(
     maxAge: 60,
   });
 
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const ownerEmail = process.env.OWNER_EMAIL;
-  const paynowNumber = process.env.PAYNOW_NUMBER ?? "our listed PayNow number";
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -229,20 +227,18 @@ export async function createOrder(
 
     try {
       await resend.emails.send({
-        from: "onboarding@resend.dev",
+        from: emailFrom,
         to: insertedOrder.customer_email,
         subject: `Order #${insertedOrder.order_ref} Received!`,
         html: emailHtml,
       });
 
-      if (ownerEmail) {
-        await resend.emails.send({
-          from: "onboarding@resend.dev",
-          to: ownerEmail,
-          subject: `New Order: #${insertedOrder.order_ref}`,
-          html: ownerEmailHtml,
-        });
-      }
+      await resend.emails.send({
+        from: emailFrom,
+        to: ownerEmail,
+        subject: `New Order: #${insertedOrder.order_ref}`,
+        html: ownerEmailHtml,
+      });
     } catch (emailError) {
       if (process.env.NODE_ENV !== "production") {
         console.error(

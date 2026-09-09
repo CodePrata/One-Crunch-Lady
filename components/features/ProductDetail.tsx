@@ -92,7 +92,7 @@ export default function ProductDetail({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown underline underline-offset-2 transition hover:text-power-red"
+        className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown-dark underline underline-offset-2 transition hover:text-power-red"
       >
         View Details
       </button>
@@ -118,18 +118,18 @@ export default function ProductDetail({
               <div className="flex items-start gap-3">
                 <h2
                   id={headingId}
-                  className="font-display text-4xl uppercase leading-none text-cookie-brown"
+                  className="font-display text-4xl uppercase leading-none text-cookie-brown-dark"
                 >
                   {name}
                 </h2>
-                <p className="shrink-0 pt-1 text-lg font-bold text-cookie-brown">
+                <p className="shrink-0 pt-1 text-lg font-bold text-cookie-brown-dark">
                   {formattedPrice}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="tap-target shrink-0 rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+                className="tap-target shrink-0 rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
                 aria-label="Close product details"
               >
                 Close
@@ -151,13 +151,13 @@ export default function ProductDetail({
                 )}
               </div>
 
-              <p className="text-base text-cookie-brown">{description}</p>
+              <p className="text-base text-cookie-brown-dark">{description}</p>
 
               <div className="mt-5">
-                <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+                <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
                   Ingredients
                 </p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-cookie-brown">
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-cookie-brown-dark">
                   {ingredients.map((ingredient) => (
                     <li key={ingredient}>{ingredient}</li>
                   ))}

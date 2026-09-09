@@ -150,7 +150,7 @@ export default function CartDrawer() {
             <div className="flex items-center justify-between gap-4 p-5">
               <h2
                 id={headingId}
-                className="font-display text-3xl uppercase leading-none text-cookie-brown"
+                className="font-display text-3xl uppercase leading-none text-cookie-brown-dark"
               >
                 Your Order
               </h2>
@@ -158,7 +158,7 @@ export default function CartDrawer() {
                 type="button"
                 onClick={closeCart}
                 aria-label="Close cart"
-                className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown"
+                className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown-dark"
               >
                 <X size={20} weight="bold" />
               </button>
@@ -168,8 +168,8 @@ export default function CartDrawer() {
               <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-5">
                 {isEmpty ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 py-16 text-center">
-                    <ShoppingCart size={40} weight="bold" className="text-cookie-brown/40" />
-                    <p className="text-sm text-cookie-brown">
+                    <ShoppingCart size={40} weight="bold" className="text-cookie-brown-dark" />
+                    <p className="text-sm text-cookie-brown-dark">
                       Your cart is empty. Add a few cookies to get started.
                     </p>
                   </div>
@@ -188,7 +188,7 @@ export default function CartDrawer() {
                                 sizes="64px"
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center bg-hero-yellow/30 font-display text-2xl text-cookie-brown">
+                              <div className="flex h-full w-full items-center justify-center bg-hero-yellow/30 font-display text-2xl text-cookie-brown-dark">
                                 {line.product.name.charAt(0).toUpperCase()}
                               </div>
                             )}
@@ -196,14 +196,14 @@ export default function CartDrawer() {
 
                           <div className="flex flex-1 flex-col gap-1">
                             <div className="flex items-start justify-between gap-2">
-                              <p className="font-display text-xl uppercase leading-none text-cookie-brown">
+                              <p className="font-display text-xl uppercase leading-none text-cookie-brown-dark">
                                 {line.product.name}
                               </p>
-                              <p className="text-sm font-bold text-cookie-brown">
+                              <p className="text-sm font-bold text-cookie-brown-dark">
                                 ${line.lineTotal.toFixed(2)}
                               </p>
                             </div>
-                            <p className="text-xs text-cookie-brown/70">
+                            <p className="text-xs text-cookie-brown-dark">
                               ${line.product.price.toFixed(2)} each
                             </p>
 
@@ -212,12 +212,12 @@ export default function CartDrawer() {
                                 type="button"
                                 onClick={() => setQuantity(line.product.id, line.quantity - 1)}
                                 aria-label={`Decrease ${line.product.name} quantity`}
-                                className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown"
+                                className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown-dark"
                               >
                                 <Minus size={14} weight="bold" />
                               </button>
                               <span
-                                className="min-w-[1.5rem] text-center text-sm font-semibold text-cookie-brown"
+                                className="min-w-[1.5rem] text-center text-sm font-semibold text-cookie-brown-dark"
                                 aria-label={`${line.product.name} quantity ${line.quantity}`}
                               >
                                 {line.quantity}
@@ -227,7 +227,7 @@ export default function CartDrawer() {
                                 onClick={() => setQuantity(line.product.id, line.quantity + 1)}
                                 disabled={line.quantity >= CART_MAX_ITEM_QUANTITY}
                                 aria-label={`Increase ${line.product.name} quantity`}
-                                className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown disabled:cursor-not-allowed disabled:opacity-40"
+                                className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown-dark disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 <Plus size={14} weight="bold" />
                               </button>
@@ -235,7 +235,7 @@ export default function CartDrawer() {
                                 type="button"
                                 onClick={() => removeItem(line.product.id)}
                                 aria-label={`Remove ${line.product.name} from cart`}
-                                className="tap-target ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md text-cookie-brown/60 transition hover:text-power-red"
+                                className="tap-target ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md text-cookie-brown-dark transition hover:text-power-red"
                               >
                                 <TrashSimple size={16} weight="bold" />
                               </button>
@@ -250,7 +250,7 @@ export default function CartDrawer() {
                           className="flex items-center gap-3 rounded-xl border-2 border-cookie-brown/30 p-3 opacity-60"
                         >
                           <div className="flex-1">
-                            <p className="font-display text-lg uppercase leading-none text-cookie-brown">
+                            <p className="font-display text-lg uppercase leading-none text-cookie-brown-dark">
                               {line.product.name}
                             </p>
                             <p className="text-xs font-semibold uppercase text-power-red">
@@ -261,7 +261,7 @@ export default function CartDrawer() {
                             type="button"
                             onClick={() => removeItem(line.product.id)}
                             aria-label={`Remove ${line.product.name} from cart`}
-                            className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md text-cookie-brown/60 transition hover:text-power-red"
+                            className="tap-target inline-flex h-9 w-9 items-center justify-center rounded-md text-cookie-brown-dark transition hover:text-power-red"
                           >
                             <TrashSimple size={16} weight="bold" />
                           </button>
@@ -271,21 +271,21 @@ export default function CartDrawer() {
 
                     {lines.length > 0 ? (
                       <div className="mt-6 space-y-4 border-t-2 border-cookie-brown pt-5">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+                        <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
                           Your Details
                         </p>
 
                         <div>
                           <label
                             htmlFor="cartCustomerName"
-                            className="mb-1 block text-sm font-semibold text-cookie-brown"
+                            className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
                           >
                             Name
                           </label>
                           <input
                             id="cartCustomerName"
                             type="text"
-                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
                             aria-label="Customer name"
                             {...register("customerName")}
                           />
@@ -299,14 +299,14 @@ export default function CartDrawer() {
                         <div>
                           <label
                             htmlFor="cartCustomerEmail"
-                            className="mb-1 block text-sm font-semibold text-cookie-brown"
+                            className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
                           >
                             Email
                           </label>
                           <input
                             id="cartCustomerEmail"
                             type="email"
-                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
                             aria-label="Customer email"
                             {...register("customerEmail")}
                           />
@@ -320,17 +320,17 @@ export default function CartDrawer() {
                         <div>
                           <label
                             htmlFor="cartCustomerPhone"
-                            className="mb-1 block text-sm font-semibold text-cookie-brown"
+                            className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
                           >
                             Phone (Singapore)
                           </label>
-                          <p id="cartCustomerPhoneHelp" className="mb-1 text-xs text-cookie-brown">
+                          <p id="cartCustomerPhoneHelp" className="mb-1 text-xs text-cookie-brown-dark">
                             Format: +65XXXXXXXX or 8/9XXXXXXXX.
                           </p>
                           <input
                             id="cartCustomerPhone"
                             type="tel"
-                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+                            className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
                             aria-label="Customer phone"
                             aria-describedby="cartCustomerPhoneHelp"
                             {...register("customerPhone")}
@@ -343,7 +343,7 @@ export default function CartDrawer() {
                         </div>
 
                         <div>
-                          <label className="flex items-start gap-2 text-sm text-cookie-brown">
+                          <label className="flex items-start gap-2 text-sm text-cookie-brown-dark">
                             <input
                               type="checkbox"
                               className="mt-0.5 h-4 w-4 shrink-0 appearance-none rounded-sm border-2 border-cookie-brown checked:bg-cookie-brown focus:ring-1 focus:ring-cookie-brown"
@@ -363,7 +363,20 @@ export default function CartDrawer() {
                           ) : null}
                         </div>
 
-                        <p className="text-xs text-cookie-brown">
+                        <p className="text-xs text-cookie-brown-dark">
+                          Your details are used only to fulfil this order. Read our{" "}
+                          <Link
+                            href="/privacy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold underline underline-offset-2"
+                          >
+                            privacy policy
+                          </Link>
+                          .
+                        </p>
+
+                        <p className="text-xs text-cookie-brown-dark">
                           Orders are made fresh to order. Review our{" "}
                           <Link
                             href="/refund"
@@ -384,10 +397,10 @@ export default function CartDrawer() {
               {lines.length > 0 ? (
                 <div className="space-y-3 border-t-2 border-cookie-brown p-5">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
                       Subtotal ({itemCount} item{itemCount === 1 ? "" : "s"})
                     </p>
-                    <p className="font-display text-3xl text-cookie-brown">
+                    <p className="font-display text-3xl text-cookie-brown-dark">
                       ${subtotal.toFixed(2)}
                     </p>
                   </div>
@@ -406,7 +419,7 @@ export default function CartDrawer() {
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="tap-target mt-3 inline-flex items-center justify-center rounded-md border-2 border-cookie-brown bg-flour-white px-4 text-sm font-semibold text-cookie-brown"
+                        className="tap-target mt-3 inline-flex items-center justify-center rounded-md border-2 border-cookie-brown bg-flour-white px-4 text-sm font-semibold text-cookie-brown-dark"
                       >
                         Order via WhatsApp Instead
                       </a>

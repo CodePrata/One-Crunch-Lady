@@ -39,6 +39,7 @@
   --hero-yellow: #ffd700;
   --power-red: #d32f2f;
   --cookie-brown: #8d6e63;
+  --cookie-brown-dark: #6b4f44;
   --flour-white: #fafafa;
 }
 
@@ -54,7 +55,7 @@ html {
 
 body {
   background-color: var(--flour-white);
-  color: var(--cookie-brown);
+  color: var(--cookie-brown-dark);
   font-family: var(--font-inter), Arial, sans-serif;
 }
 

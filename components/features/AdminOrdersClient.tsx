@@ -18,8 +18,11 @@ type StatusTab = "ALL" | OrderStatus;
 interface AdminOrder {
   id: number;
   order_ref: string;
-  customer_name: string;
-  customer_email: string;
+  // Nulled by the anonymize_old_orders() cron job (migration 010) once an
+  // order is over two years old - the row and its totals stay, the PII does
+  // not.
+  customer_name: string | null;
+  customer_email: string | null;
   total_price: number;
   status: string;
   created_at: string;
@@ -232,14 +235,14 @@ export default function AdminOrdersClient({
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
       <section className="mb-8 rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h1 className="font-display text-5xl uppercase text-cookie-brown">
+          <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
             Admin Orders
           </h1>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => router.refresh()}
-              className="tap-target rounded-md border-2 border-cookie-brown px-4 font-semibold text-cookie-brown"
+              className="tap-target rounded-md border-2 border-cookie-brown px-4 font-semibold text-cookie-brown-dark"
             >
               Refresh
             </button>
@@ -262,7 +265,7 @@ export default function AdminOrdersClient({
               className={`tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold ${
                 activeTab === tab.id
                   ? "bg-cookie-brown text-flour-white"
-                  : "bg-flour-white text-cookie-brown"
+                  : "bg-flour-white text-cookie-brown-dark"
               }`}
             >
               {tab.label}
@@ -278,11 +281,13 @@ export default function AdminOrdersClient({
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="font-display text-3xl uppercase text-cookie-brown">
+                  <p className="font-display text-3xl uppercase text-cookie-brown-dark">
                     {order.order_ref}
                   </p>
-                  <p className="text-sm text-cookie-brown">{order.customer_name}</p>
-                  <p className="text-sm font-semibold text-cookie-brown">
+                  <p className="text-sm text-cookie-brown-dark">
+                    {order.customer_name ?? "Anonymised (2+ years old)"}
+                  </p>
+                  <p className="text-sm font-semibold text-cookie-brown-dark">
                     ${Number(order.total_price).toFixed(2)}
                   </p>
                   <span
@@ -300,7 +305,7 @@ export default function AdminOrdersClient({
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 text-sm font-semibold text-cookie-brown disabled:opacity-60"
+                    className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 text-sm font-semibold text-cookie-brown-dark disabled:opacity-60"
                     disabled={order.status !== "UNPAID"}
                     onClick={() => handleStatusUpdate(order.id, "PAID")}
                   >
@@ -421,20 +426,20 @@ export default function AdminOrdersClient({
                   <button
                     type="button"
                     onClick={() => open()}
-                    className="tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold text-cookie-brown"
+                    className="tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold text-cookie-brown-dark"
                   >
                     Upload Product Image
                   </button>
                 )}
               </CldUploadWidget>
-              <span className="text-sm text-cookie-brown">
+              <span className="text-sm text-cookie-brown-dark">
                 {newProduct.image_url ? "Image selected" : "No image uploaded"}
               </span>
             </div>
 
             <button
               type="submit"
-              className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 font-semibold text-cookie-brown"
+              className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 font-semibold text-cookie-brown-dark"
             >
               Create Product
             </button>
@@ -443,7 +448,7 @@ export default function AdminOrdersClient({
       </section>
 
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h2 className="font-display text-4xl uppercase text-cookie-brown">
+        <h2 className="font-display text-4xl uppercase text-cookie-brown-dark">
           Product Management
         </h2>
         <div className="mt-4 space-y-3">
@@ -453,7 +458,7 @@ export default function AdminOrdersClient({
               className="rounded-xl border-2 border-cookie-brown p-3"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="font-semibold text-cookie-brown">{product.name}</p>
+                <p className="font-semibold text-cookie-brown-dark">{product.name}</p>
                 <button
                   type="button"
                   onClick={() =>
@@ -461,7 +466,7 @@ export default function AdminOrdersClient({
                   }
                   className={`tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold ${
                     product.is_available
-                      ? "bg-hero-yellow text-cookie-brown"
+                      ? "bg-hero-yellow text-cookie-brown-dark"
                       : "bg-cookie-brown text-flour-white"
                   }`}
                 >
@@ -555,13 +560,13 @@ export default function AdminOrdersClient({
                         <button
                           type="button"
                           onClick={() => open()}
-                          className="tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold text-cookie-brown"
+                          className="tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold text-cookie-brown-dark"
                         >
                           Replace Image
                         </button>
                       )}
                     </CldUploadWidget>
-                    <span className="text-sm text-cookie-brown">
+                    <span className="text-sm text-cookie-brown-dark">
                       {editDraft.image_url ? "Image selected" : "No new image"}
                     </span>
                   </div>
@@ -570,14 +575,14 @@ export default function AdminOrdersClient({
                     <button
                       type="button"
                       onClick={() => handleSaveEdit(product.id)}
-                      className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 text-sm font-semibold text-cookie-brown"
+                      className="tap-target rounded-md border-2 border-cookie-brown bg-hero-yellow px-4 text-sm font-semibold text-cookie-brown-dark"
                     >
                       Save Product
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingProductId(null)}
-                      className="tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold text-cookie-brown"
+                      className="tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold text-cookie-brown-dark"
                     >
                       Cancel
                     </button>
@@ -587,7 +592,7 @@ export default function AdminOrdersClient({
                 <button
                   type="button"
                   onClick={() => startEditingProduct(product)}
-                  className="tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold text-cookie-brown"
+                  className="tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold text-cookie-brown-dark"
                 >
                   Edit Product
                 </button>
@@ -598,7 +603,7 @@ export default function AdminOrdersClient({
       </section>
 
       {feedback ? (
-        <p className="mt-4 text-sm font-semibold text-cookie-brown">{feedback}</p>
+        <p className="mt-4 text-sm font-semibold text-cookie-brown-dark">{feedback}</p>
       ) : null}
     </main>
   );

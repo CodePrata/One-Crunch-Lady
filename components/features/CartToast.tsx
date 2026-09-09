@@ -46,7 +46,7 @@ export default function CartToast() {
             className="flex items-center gap-2 rounded-full border-2 border-cookie-brown bg-flour-white px-4 py-2 shadow-[3px_3px_0_0_#8D6E63]"
           >
             <CheckCircle size={20} weight="fill" className="shrink-0 text-power-red" />
-            <span className="text-sm font-semibold text-cookie-brown">{toast.message}</span>
+            <span className="text-sm font-semibold text-cookie-brown-dark">{toast.message}</span>
           </motion.div>
         ) : null}
       </AnimatePresence>

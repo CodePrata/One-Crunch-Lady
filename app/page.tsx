@@ -1,8 +1,9 @@
+import { cookies } from "next/headers";
 import CartBubble from "@/components/features/CartBubble";
 import { CartCatalogProvider } from "@/components/features/CartCatalogProvider";
 import CartDrawer from "@/components/features/CartDrawer";
 import CartToast from "@/components/features/CartToast";
-import IntroLanding from "@/components/features/IntroLanding";
+import IntroLanding, { SPLASH_DISMISSED_COOKIE } from "@/components/features/IntroLanding";
 import ProductCatalog from "@/components/features/ProductCatalog";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,6 +35,9 @@ function parseIngredients(ingredients: string | null): string[] {
 
 export default async function Home() {
   const supabase = createClient();
+  // Read server-side so a returning visitor's HTML never includes the
+  // splash gate at all - no client-only state, no hydration-timing gap.
+  const hasDismissedSplash = cookies().get(SPLASH_DISMISSED_COOKIE)?.value === "true";
   const { data, error } = await supabase
     .from("products")
     .select("id,name,slug,description,price,image_url,category,ingredients,is_available,created_at")
@@ -63,7 +67,7 @@ export default async function Home() {
 
   return (
     <CartCatalogProvider products={catalogProducts}>
-      <IntroLanding>
+      <IntroLanding hasDismissedSplash={hasDismissedSplash}>
         <main>
           <section className="pt-8 tablet:pt-12">
             <div className="responsive-shell px-4 tablet:px-6 desktop:px-8">

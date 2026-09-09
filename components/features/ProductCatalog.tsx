@@ -73,10 +73,8 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveFilter(category)}
-                className={`tap-target shrink-0 whitespace-nowrap rounded-full border-2 border-cookie-brown font-semibold transition-[font-size,padding,background-color,color] duration-300 ease-out ${
-                  isActive
-                    ? "bg-power-red px-5 py-1.5 text-4xl text-flour-white tablet:text-5xl"
-                    : "bg-flour-white px-4 py-2 text-sm text-cookie-brown hover:bg-hero-yellow/30"
+                className={`tap-target shrink-0 whitespace-nowrap px-2 py-2 font-display uppercase text-cookie-brown transition-[font-size] duration-300 ease-out hover:text-power-red ${
+                  isActive ? "text-4xl tablet:text-5xl" : "text-sm"
                 }`}
               >
                 {category}

@@ -370,6 +370,17 @@ export default function AdminOrdersClient({
                 }
                 className="tap-target rounded-md border-2 border-cookie-brown px-3"
               />
+              <input
+                placeholder="Category (e.g. Cookies, Muffins, Cakes)"
+                value={newProduct.category}
+                onChange={(event) =>
+                  setNewProduct((current) => ({
+                    ...current,
+                    category: event.target.value,
+                  }))
+                }
+                className="tap-target rounded-md border-2 border-cookie-brown px-3"
+              />
             </div>
             <input
               required
@@ -496,6 +507,7 @@ export default function AdminOrdersClient({
                       className="tap-target rounded-md border-2 border-cookie-brown px-3"
                     />
                     <input
+                      placeholder="Category (e.g. Cookies, Muffins, Cakes)"
                       value={editDraft.category}
                       onChange={(event) =>
                         setEditDraft((current) => ({

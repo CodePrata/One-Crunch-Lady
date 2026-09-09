@@ -11,6 +11,20 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 // kept local to this one effect.
 const BURST_COLOR = "#E6C200";
 
+// Read server-side (see app/page.tsx) so a returning visitor's initial
+// HTML skips the gate entirely - not just quickly, but never rendered.
+export const SPLASH_DISMISSED_COOKIE = "splash_dismissed";
+const SPLASH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year
+
+function markSplashDismissed() {
+  try {
+    document.cookie = `${SPLASH_DISMISSED_COOKIE}=true; path=/; max-age=${SPLASH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+  } catch {
+    // document.cookie can throw in locked-down privacy contexts - harmless
+    // to skip; worst case the gate just replays on the next visit.
+  }
+}
+
 type Phase = "gate" | "exiting" | "revealed";
 
 /**
@@ -27,25 +41,37 @@ type Phase = "gate" | "exiting" | "revealed";
  * click through a purely decorative screen would be an accessibility
  * regression, not a feature.
  */
-export default function IntroLanding({ children }: { children: React.ReactNode }) {
+export default function IntroLanding({
+  children,
+  hasDismissedSplash = false,
+}: {
+  children: React.ReactNode;
+  /** From the server-read `splash_dismissed` cookie - see app/page.tsx. */
+  hasDismissedSplash?: boolean;
+}) {
   const reduceMotion = useReducedMotion();
-  const [phase, setPhase] = useState<Phase>("gate");
+  const [phase, setPhase] = useState<Phase>(hasDismissedSplash ? "revealed" : "gate");
   const ctaRef = useRef<HTMLButtonElement>(null);
 
   useBodyScrollLock(phase !== "revealed");
 
   useEffect(() => {
+    if (hasDismissedSplash) {
+      return;
+    }
     if (reduceMotion) {
+      markSplashDismissed();
       setPhase("revealed");
       return;
     }
     ctaRef.current?.focus();
-  }, [reduceMotion]);
+  }, [reduceMotion, hasDismissedSplash]);
 
   function handleEnter() {
     if (phase !== "gate") {
       return;
     }
+    markSplashDismissed();
     if (reduceMotion) {
       setPhase("revealed");
       return;
@@ -112,9 +138,9 @@ export default function IntroLanding({ children }: { children: React.ReactNode }
             <Image
               src="/ocl_logo-nobg.png"
               alt="One Crunch Lady"
-              width={140}
-              height={140}
-              className="h-32 w-32 object-contain"
+              width={224}
+              height={224}
+              className="h-56 w-56 object-contain"
               priority
             />
           </motion.div>
@@ -150,7 +176,11 @@ export default function IntroLanding({ children }: { children: React.ReactNode }
 
       <motion.div
         aria-hidden={phase !== "revealed"}
-        initial={{ opacity: 0, y: 40 }}
+        // `false` for a returning visitor (hasDismissedSplash): render
+        // already at the "animate" resting state with no enter transition
+        // at all, since there's no gate to reveal from - otherwise this
+        // would still fade/slide in on every load despite never gating.
+        initial={hasDismissedSplash ? false : { opacity: 0, y: 40 }}
         animate={phase === "revealed" ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className={phase !== "revealed" ? "pointer-events-none" : undefined}

@@ -31,8 +31,12 @@ export default function RootLayout({
 }>) {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
-  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
-  const tiktokUrl = process.env.NEXT_PUBLIC_TIKTOK_URL;
+  // Falls back to the platform's own homepage (same pattern as
+  // whatsappHref above) so the icons always render - including in local
+  // dev, where these are typically unset - rather than silently
+  // disappearing whenever the specific handle hasn't been configured.
+  const instagramHref = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/";
+  const tiktokHref = process.env.NEXT_PUBLIC_TIKTOK_URL || "https://www.tiktok.com/";
 
   return (
     <html lang="en">
@@ -71,32 +75,26 @@ export default function RootLayout({
                 </p>
               </div>
               <div className="flex flex-col gap-3 text-cookie-brown desktop:items-end">
-                {instagramUrl || tiktokUrl ? (
-                  <div className="flex items-center gap-3">
-                    {instagramUrl ? (
-                      <a
-                        href={instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="One Crunch Lady on Instagram"
-                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
-                      >
-                        <InstagramLogo size={22} weight="bold" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                    {tiktokUrl ? (
-                      <a
-                        href={tiktokUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="One Crunch Lady on TikTok"
-                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
-                      >
-                        <TiktokLogo size={22} weight="bold" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                  </div>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  <a
+                    href={instagramHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="One Crunch Lady on Instagram"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
+                  >
+                    <InstagramLogo size={22} weight="bold" aria-hidden="true" />
+                  </a>
+                  <a
+                    href={tiktokHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="One Crunch Lady on TikTok"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
+                  >
+                    <TiktokLogo size={22} weight="bold" aria-hidden="true" />
+                  </a>
+                </div>
                 <a
                   href={whatsappHref}
                   target="_blank"

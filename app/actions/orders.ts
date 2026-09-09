@@ -11,6 +11,7 @@ import { render } from "@react-email/render";
 interface CreateOrderResult {
   success: boolean;
   orderRef?: string;
+  accessToken?: string;
   error?: string;
 }
 
@@ -57,7 +58,7 @@ export async function createOrder(
 
   const { data: existingOrder, error: existingOrderError } = await supabase
     .from("orders")
-    .select("order_ref")
+    .select("order_ref,access_token")
     .eq("idempotency_token", values.idempotencyToken)
     .maybeSingle();
 
@@ -76,7 +77,11 @@ export async function createOrder(
       path: "/",
       maxAge: 60,
     });
-    return { success: true, orderRef: existingOrder.order_ref };
+    return {
+      success: true,
+      orderRef: existingOrder.order_ref,
+      accessToken: existingOrder.access_token,
+    };
   }
 
   const selectedEntries = Object.entries(values.quantities).filter(
@@ -172,7 +177,7 @@ export async function createOrder(
       total_price: totalPrice,
       idempotency_token: values.idempotencyToken,
     })
-    .select("order_ref,total_price,customer_name,customer_email")
+    .select("order_ref,access_token,total_price,customer_name,customer_email")
     .single();
 
   if (insertError || !insertedOrder?.order_ref) {
@@ -252,5 +257,9 @@ export async function createOrder(
     }
   }
 
-  return { success: true, orderRef: insertedOrder.order_ref };
+  return {
+    success: true,
+    orderRef: insertedOrder.order_ref,
+    accessToken: insertedOrder.access_token,
+  };
 }

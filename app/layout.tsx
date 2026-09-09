@@ -29,6 +29,11 @@ export const metadata: Metadata = {
     template: "%s | One Crunch Lady",
   },
   description,
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/ocl_logo-nobg.png",
+  },
   openGraph: {
     title: "One Crunch Lady",
     description,
@@ -53,12 +58,10 @@ export default function RootLayout({
 }>) {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : null;
-  // Renders only when explicitly configured, matching the .env.example
-  // comment ("Footer icons only render when their URL is set; leave blank
-  // to hide.") - a misconfigured deploy should ship no link rather than a
-  // dead one to the platform homepage or a bare wa.me/.
-  const instagramHref = process.env.NEXT_PUBLIC_INSTAGRAM_URL || null;
-  const tiktokHref = process.env.NEXT_PUBLIC_TIKTOK_URL || null;
+  // Icons always render; an unconfigured deploy falls back to the
+  // platform homepage rather than hiding the icon outright.
+  const instagramHref = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com";
+  const tiktokHref = process.env.NEXT_PUBLIC_TIKTOK_URL || "https://www.tiktok.com";
 
   return (
     <html lang="en">
@@ -80,9 +83,9 @@ export default function RootLayout({
                 <Image
                   src="/ocl_logo-nobg.png" // Path relative to the public folder
                   alt=""
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain"
                   priority
                 />
                 <span className="font-display text-2xl uppercase leading-none text-cookie-brown-dark">
@@ -94,41 +97,35 @@ export default function RootLayout({
 
           <div id="main-content">{children}</div>
 
-          <footer className="mt-16 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
-            <div className="responsive-shell grid gap-6 px-4 py-10 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
+          <footer className="mt-12 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
+            <div className="responsive-shell grid gap-4 px-4 py-8 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
               <div>
                 <p className="font-display text-3xl uppercase text-cookie-brown-dark">One Crunch Lady</p>
                 <p className="mt-2 text-base text-cookie-brown-dark">
                   Comic-crunch cookies with bold flavor and heart.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 text-cookie-brown-dark desktop:items-end">
-                {instagramHref || tiktokHref ? (
-                  <div className="flex items-center gap-3">
-                    {instagramHref ? (
-                      <a
-                        href={instagramHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="One Crunch Lady on Instagram"
-                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
-                      >
-                        <InstagramLogo size={22} weight="bold" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                    {tiktokHref ? (
-                      <a
-                        href={tiktokHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="One Crunch Lady on TikTok"
-                        className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
-                      >
-                        <TiktokLogo size={22} weight="bold" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                  </div>
-                ) : null}
+              <div className="flex flex-col gap-1 text-cookie-brown-dark desktop:items-end">
+                <div className="flex items-center gap-3">
+                  <a
+                    href={instagramHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="One Crunch Lady on Instagram"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
+                  >
+                    <InstagramLogo size={22} weight="bold" aria-hidden="true" />
+                  </a>
+                  <a
+                    href={tiktokHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="One Crunch Lady on TikTok"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
+                  >
+                    <TiktokLogo size={22} weight="bold" aria-hidden="true" />
+                  </a>
+                </div>
                 {whatsappHref ? (
                   <a
                     href={whatsappHref}

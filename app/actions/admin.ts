@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
+import { productSchema } from "@/lib/validations/product";
 
 type AdminOrderStatus = "PAID" | "READY";
 
@@ -186,24 +187,22 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
   await assertAdminAccess();
   const supabase = supabaseAdmin();
 
-  const cleanName = data.name.trim();
-  const cleanDescription = data.description.trim();
-  const cleanImageUrl = data.image_url.trim();
-  const cleanIngredients = data.ingredients.trim();
+  const parsed = productSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide valid product details.");
+  }
+
+  const {
+    name: cleanName,
+    description: cleanDescription,
+    price: cleanPrice,
+    image_url: cleanImageUrl,
+    ingredients: cleanIngredients,
+  } = parsed.data;
   // Nullable per 008_add_category_to_products.sql - its check constraint
   // rejects an empty/whitespace string, so blank means "no category" (null),
   // not "".
-  const cleanCategory = data.category.trim() || null;
-  const cleanPrice = Number(data.price);
-
-  if (
-    !cleanName ||
-    !cleanDescription ||
-    !cleanIngredients ||
-    Number.isNaN(cleanPrice)
-  ) {
-    throw new Error("Please provide valid product details.");
-  }
+  const cleanCategory = parsed.data.category || null;
 
   const slug = slugifyProductName(cleanName);
 
@@ -249,25 +248,26 @@ export async function updateProduct(
   await assertAdminAccess();
   const supabase = supabaseAdmin();
 
-  const cleanName = data.name.trim();
-  const cleanDescription = data.description.trim();
-  const cleanImageUrl = data.image_url.trim();
-  const cleanIngredients = data.ingredients.trim();
+  if (!productId) {
+    throw new Error("Please provide valid product details.");
+  }
+
+  const parsed = productSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide valid product details.");
+  }
+
+  const {
+    name: cleanName,
+    description: cleanDescription,
+    price: cleanPrice,
+    image_url: cleanImageUrl,
+    ingredients: cleanIngredients,
+  } = parsed.data;
   // Nullable per 008_add_category_to_products.sql - its check constraint
   // rejects an empty/whitespace string, so blank means "no category" (null),
   // not "".
-  const cleanCategory = data.category.trim() || null;
-  const cleanPrice = Number(data.price);
-
-  if (
-    !productId ||
-    !cleanName ||
-    !cleanDescription ||
-    !cleanIngredients ||
-    Number.isNaN(cleanPrice)
-  ) {
-    throw new Error("Please provide valid product details.");
-  }
+  const cleanCategory = parsed.data.category || null;
 
   const { error } = await supabase
     .from("products")

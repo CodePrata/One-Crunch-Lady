@@ -5,8 +5,7 @@ import CartToast from "@/components/features/CartToast";
 import ProductCatalog from "@/components/features/ProductCatalog";
 import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 interface ProductRow {
   id: string;
@@ -37,8 +36,7 @@ export default async function Home() {
     .from("products")
     .select("id,name,slug,description,price,image_url,category,ingredients,is_available,created_at")
     .eq("is_available", true)
-    .order("created_at", { ascending: false })
-    .setHeader("Cache-Control", "no-cache");
+    .order("created_at", { ascending: false });
 
   if (error) {
     // Full detail stays server-side; app/error.tsx only ever shows the
@@ -50,8 +48,9 @@ export default async function Home() {
   const products = (data ?? []) as ProductRow[];
   // One shared, fully-hydrated shape for the cart (drawer + bubble, which
   // now owns checkout) and the catalog grid - each reads only the fields
-  // it needs. Single server-side read, joined fresh on every render -
-  // never cached prices or availability.
+  // it needs. Page is revalidated every 60s (or immediately by admin
+  // mutations via revalidatePath), so prices/availability are never more
+  // than a minute stale.
   const catalogProducts = products.map((product) => ({
     id: product.id,
     name: product.name,

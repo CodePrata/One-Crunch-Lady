@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
 import AddToCartButton from "@/components/features/AddToCartButton";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductDetailProps {
@@ -65,6 +66,7 @@ export default function ProductDetail({
   const headingId = useId();
 
   useBodyScrollLock(isOpen);
+  useFocusTrap(dialogRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) {

@@ -14,10 +14,6 @@ function getRequiredEnvVar(name: string): string {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/api/orders" && request.method !== "POST") {
-    return new NextResponse("Method Not Allowed", { status: 405 });
-  }
-
   if (
     !pathname.startsWith("/admin") ||
     pathname.startsWith("/admin/login") ||
@@ -57,5 +53,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/orders"],
+  matcher: ["/admin/:path*"],
 };

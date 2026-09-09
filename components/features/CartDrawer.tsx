@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { createOrder } from "@/app/actions/orders";
 import { useCartCatalogItems } from "@/components/features/CartCatalogProvider";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { getOptimizedImage } from "@/lib/cloudinary";
 import { CART_MAX_ITEM_QUANTITY, useCartStore } from "@/lib/store/cart";
 import {
@@ -55,6 +56,7 @@ export default function CartDrawer() {
   const canCheckOut = lines.length > 0 && unavailableLines.length === 0;
 
   useBodyScrollLock(isOpen);
+  useFocusTrap(panelRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) {

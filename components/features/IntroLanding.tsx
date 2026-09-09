@@ -146,7 +146,7 @@ export default function IntroLanding({
           </motion.div>
 
           <motion.p
-            className="relative mt-5 max-w-xs px-4 text-center font-display text-3xl uppercase leading-none text-cookie-brown tablet:text-4xl"
+            className="relative mt-5 max-w-xs px-4 text-center font-display text-3xl uppercase leading-none text-cookie-brown-dark tablet:text-4xl"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: phase === "exiting" ? 0 : 1, y: 0 }}
             transition={{

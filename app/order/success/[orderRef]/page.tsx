@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { buildPayNowQrPayload, renderPayNowQrSvg } from "@/lib/paynow";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +20,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
   const accessToken = searchParams.t;
 
   if (!accessToken) {
-    redirect("/");
+    notFound();
   }
 
   // access_token is a random per-order uuid (migration 009): requiring it
@@ -33,8 +33,14 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
     .eq("access_token", accessToken)
     .maybeSingle();
 
+  if (error) {
+    console.error("Failed to load order", error);
+  }
+
   if (error || !data) {
-    redirect("/");
+    // Wrong or typo'd reference: tell the customer plainly rather than
+    // silently bouncing them to the homepage with no explanation.
+    notFound();
   }
 
   const formattedTotal = Number(data.total_price).toFixed(2);
@@ -59,10 +65,10 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
   return (
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+        <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
           Order Submitted
         </p>
-        <h1 className="mt-2 font-display text-6xl uppercase leading-none text-cookie-brown tablet:text-7xl">
+        <h1 className="mt-2 font-display text-6xl uppercase leading-none text-cookie-brown-dark tablet:text-7xl">
           {data.order_ref}
         </h1>
 
@@ -91,16 +97,16 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
               SUCCESS
             </text>
           </svg>
-          <p className="text-sm font-semibold text-cookie-brown">
+          <p className="text-sm font-semibold text-cookie-brown-dark">
             Order submitted! Please proceed with payment.
           </p>
         </div>
 
         <div className="mt-6 space-y-3 rounded-xl border-2 border-cookie-brown p-4">
-          <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown">
+          <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
             Final Amount
           </p>
-          <p className="font-display text-5xl text-cookie-brown">${formattedTotal}</p>
+          <p className="font-display text-5xl text-cookie-brown-dark">${formattedTotal}</p>
 
           {qrSvg ? (
             <div className="flex flex-col items-center gap-2 pt-1">
@@ -110,13 +116,13 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
                 // library from our own payload, never from user input.
                 dangerouslySetInnerHTML={{ __html: qrSvg }}
               />
-              <p className="text-center text-xs text-cookie-brown">
+              <p className="text-center text-xs text-cookie-brown-dark">
                 Scan with your banking app to PayNow the exact amount, pre-filled.
               </p>
             </div>
           ) : null}
 
-          <p className="text-sm text-cookie-brown">
+          <p className="text-sm text-cookie-brown-dark">
             PayNow to: <span className="font-bold">{paynowNumber}</span>
           </p>
         </div>
@@ -132,7 +138,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
           </a>
           <Link
             href="/"
-            className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown px-5 font-semibold text-cookie-brown"
+            className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown px-5 font-semibold text-cookie-brown-dark"
           >
             Back to Home
           </Link>

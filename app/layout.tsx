@@ -19,9 +19,31 @@ const bangers = Bangers({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const description = "Crunchy, comic-style cookies built with love.";
+
 export const metadata: Metadata = {
-  title: "One Crunch Lady",
-  description: "Crunchy, comic-style cookies built with love.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "One Crunch Lady",
+    template: "%s | One Crunch Lady",
+  },
+  description,
+  openGraph: {
+    title: "One Crunch Lady",
+    description,
+    url: siteUrl,
+    siteName: "One Crunch Lady",
+    images: ["/ocl_logo-nobg.png"],
+    locale: "en_SG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "One Crunch Lady",
+    description,
+    images: ["/ocl_logo-nobg.png"],
+  },
 };
 
 export default function RootLayout({
@@ -57,7 +79,7 @@ export default function RootLayout({
                   className="h-10 w-10 object-contain"
                   priority
                 />
-                <span className="font-display text-2xl uppercase leading-none text-cookie-brown">
+                <span className="font-display text-2xl uppercase leading-none text-cookie-brown-dark">
                   One Crunch Lady
                 </span>
               </Link>
@@ -69,19 +91,19 @@ export default function RootLayout({
           <footer className="mt-16 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
             <div className="responsive-shell grid gap-6 px-4 py-10 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
               <div>
-                <p className="font-display text-3xl uppercase text-cookie-brown">One Crunch Lady</p>
-                <p className="mt-2 text-base text-cookie-brown">
+                <p className="font-display text-3xl uppercase text-cookie-brown-dark">One Crunch Lady</p>
+                <p className="mt-2 text-base text-cookie-brown-dark">
                   Comic-crunch cookies with bold flavor and heart.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 text-cookie-brown desktop:items-end">
+              <div className="flex flex-col gap-3 text-cookie-brown-dark desktop:items-end">
                 <div className="flex items-center gap-3">
                   <a
                     href={instagramHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="One Crunch Lady on Instagram"
-                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
                   >
                     <InstagramLogo size={22} weight="bold" aria-hidden="true" />
                   </a>
@@ -90,7 +112,7 @@ export default function RootLayout({
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="One Crunch Lady on TikTok"
-                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown transition hover:bg-flour-white"
+                    className="tap-target inline-flex items-center justify-center rounded-full border-2 border-cookie-brown text-cookie-brown-dark transition hover:bg-flour-white"
                   >
                     <TiktokLogo size={22} weight="bold" aria-hidden="true" />
                   </a>
@@ -105,6 +127,9 @@ export default function RootLayout({
                 </a>
                 <Link href="/privacy" className="tap-target inline-flex items-center text-sm">
                   Privacy Policy
+                </Link>
+                <Link href="/terms" className="tap-target inline-flex items-center text-sm">
+                  Terms & Conditions
                 </Link>
                 <Link href="/refund" className="tap-target inline-flex items-center text-sm">
                   Refund & Cancellation Policy

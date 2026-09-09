@@ -11,8 +11,11 @@ type AdminOrderStatus = "PAID" | "READY";
 interface AdminOrder {
   id: number;
   order_ref: string;
-  customer_name: string;
-  customer_email: string;
+  // Nulled by the anonymize_old_orders() cron job (migration 010) once an
+  // order is over two years old - the row and its totals stay, the PII does
+  // not.
+  customer_name: string | null;
+  customer_email: string | null;
   total_price: number;
   status: string;
   created_at: string;
@@ -132,12 +135,12 @@ export async function updateOrderStatus(
           status === "PAID"
             ? PaymentConfirmedEmail({
                 orderRef: updatedOrder.order_ref,
-                customerName: updatedOrder.customer_name,
+                customerName: updatedOrder.customer_name ?? "Customer",
                 whatsappNumber,
               })
             : ReadyForPickupEmail({
                 orderRef: updatedOrder.order_ref,
-                customerName: updatedOrder.customer_name,
+                customerName: updatedOrder.customer_name ?? "Customer",
                 pickupHours: "Mon-Sat, 10:00 AM - 7:00 PM",
                 whatsappNumber,
               }),

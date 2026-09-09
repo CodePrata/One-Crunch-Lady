@@ -18,6 +18,7 @@ const config: Config = {
         "hero-yellow": "#FFD700",
         "power-red": "#D32F2F",
         "cookie-brown": "#8D6E63",
+        "cookie-brown-dark": "#6B4F44",
         "flour-white": "#FAFAFA",
       },
       fontFamily: {

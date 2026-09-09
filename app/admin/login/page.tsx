@@ -36,10 +36,10 @@ export default function AdminLoginPage() {
   return (
     <main className="responsive-shell px-4 py-12 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown">
+        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
           Admin Login
         </h1>
-        <p className="mt-2 text-sm text-cookie-brown">
+        <p className="mt-2 text-sm text-cookie-brown-dark">
           Sign in as owner to manage orders and product availability.
         </p>
 
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
           <div>
             <label
               htmlFor="adminEmail"
-              className="mb-1 block text-sm font-semibold text-cookie-brown"
+              className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
             >
               Admin Email
             </label>
@@ -57,14 +57,14 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
             />
           </div>
 
           <div>
             <label
               htmlFor="adminPassword"
-              className="mb-1 block text-sm font-semibold text-cookie-brown"
+              className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
             >
               Password
             </label>
@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
             />
           </div>
 
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
           <div>
             <Link
               href="/admin/reset-password"
-              className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown underline underline-offset-4"
+              className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown-dark underline underline-offset-4"
             >
               Forgot Password?
             </Link>

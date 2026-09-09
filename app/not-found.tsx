@@ -1,48 +1,39 @@
-"use client";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { useEffect } from "react";
+export const metadata: Metadata = {
+  title: "Page Not Found",
+  robots: { index: false },
+};
 
-interface ErrorPageProps {
-  error: Error & { digest?: string };
-  reset: () => void;
-}
-
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
+export default function NotFound() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber}`
     : "https://wa.me/";
 
-  // Full detail stays in the browser console for debugging; the page
-  // itself never renders the raw error message, which may contain
-  // database detail.
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <main className="responsive-shell px-4 py-14 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
-          Error
+        <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
+          404
+        </p>
+        <h1 className="mt-2 font-display text-5xl uppercase text-cookie-brown-dark">
+          Page Not Found
         </h1>
         <p className="mt-3 text-cookie-brown-dark">
-          Something went wrong. Tap here to order via WhatsApp instead.
+          We couldn&rsquo;t find what you were looking for. If you followed a link from an
+          order confirmation, it may have been mistyped - message us on WhatsApp and
+          we&rsquo;ll help you out directly.
         </p>
-        {error.digest ? (
-          <p className="mt-2 text-sm text-cookie-brown-dark">
-            Reference for support: {error.digest}
-          </p>
-        ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={reset}
+          <Link
+            href="/"
             className="tap-target inline-flex items-center justify-center rounded-md border-[3px] border-cookie-brown bg-power-red px-5 font-bold text-flour-white"
           >
-            Reload Page
-          </button>
+            Back to Home
+          </Link>
           <a
             href={whatsappHref}
             target="_blank"

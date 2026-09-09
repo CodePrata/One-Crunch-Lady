@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Refund & Cancellation Policy",
+  title: "Terms & Conditions",
   description:
-    "Cancellation cutoff, no-show handling, and PayNow refund terms for One Crunch Lady orders.",
+    "The terms that apply when you order from One Crunch Lady: order acceptance, pricing, pickup, allergens, and liability.",
 };
 
-export default function RefundPage() {
+export default function TermsPage() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber}`
@@ -20,79 +20,96 @@ export default function RefundPage() {
           One Crunch Lady
         </p>
         <h1 className="mt-2 font-display text-5xl uppercase leading-tight text-cookie-brown-dark tablet:text-6xl">
-          Refund & Cancellation Policy
+          Terms & Conditions
         </h1>
         <p className="mt-2 text-sm text-cookie-brown-dark">
-          We bake to order, in small batches, once payment is confirmed. Because of that,
-          this policy is stricter than a typical retail return policy - please read it
-          before you pay.
+          These terms apply whenever you place an order with One Crunch Lady. Please read
+          them alongside our{" "}
+          <Link
+            href="/privacy"
+            className="font-semibold underline underline-offset-2"
+          >
+            Privacy Policy
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/refund"
+            className="font-semibold underline underline-offset-2"
+          >
+            Refund &amp; Cancellation Policy
+          </Link>
+          .
         </p>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
           <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Cancelling an order
+            When an order is accepted
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            You can cancel for a full refund if you tell us{" "}
-            <strong className="text-cookie-brown-dark">at least 24 hours before</strong> your
-            scheduled pickup time. Message us on WhatsApp with your order reference to
-            cancel.
-          </p>
-          <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Cancellations made less than 24 hours before pickup may not be refundable,
-            since baking for your order may already be underway. We will always tell you
-            if that is the case before declining a refund.
+            Submitting the order form on this site is a request to buy, not a confirmed
+            sale. Your order is only confirmed once we receive and accept your PayNow
+            payment proof over WhatsApp. Until then, we may decline an order - for
+            example, if an item sold out between you adding it to your cart and
+            checking out.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
           <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Missed pickups
+            Pricing & availability
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            If an order is not collected on the scheduled date and you have not arranged
-            a new pickup time with us in advance, it is treated as a no-show. Because our
-            cookies are perishable and made to order, no-show orders are{" "}
-            <strong className="text-cookie-brown-dark">not eligible for a refund</strong>.
+            Prices shown at checkout are re-checked against our current prices when you
+            submit your order, so the amount you are asked to pay is always current.
+            Items are made in small batches and may sell out without notice; a sold-out
+            item cannot be added to your total.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
           <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Once your order is collected
+            Pickup terms
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Our cookies are perishable, freshly baked goods, so we{" "}
-            <strong className="text-cookie-brown-dark">cannot accept returns</strong> once an
-            order has been collected. This is a food-safety and hygiene requirement, not
-            a judgement on your order.
+            Orders are for self-collection at the pickup arrangement we confirm with you
+            over WhatsApp after payment. Please arrive within the agreed window - see our{" "}
+            <Link
+              href="/refund"
+              className="font-semibold underline underline-offset-2"
+            >
+              Refund &amp; Cancellation Policy
+            </Link>{" "}
+            for what happens if an order is not collected.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
           <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Quality issues
+            Allergen disclaimer
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            If something is genuinely wrong with your order - wrong item, missing item,
-            or a quality problem - message us on WhatsApp within{" "}
-            <strong className="text-cookie-brown-dark">24 hours of collection</strong> with a
-            photo and your order reference. We will sort out a replacement or a refund
-            for the affected item at our discretion. We are not able to action reports
-            made after that window, since freshness can no longer be verified.
+            Our cookies are home-baked in a kitchen that also handles{" "}
+            <strong className="text-cookie-brown-dark">
+              wheat/gluten, eggs, dairy, nuts, peanuts, and soy
+            </strong>
+            . Every product lists its ingredients, but we cannot guarantee any item is
+            free of trace allergens from shared equipment. If you have a food allergy or
+            intolerance, please message us on WhatsApp before ordering so we can advise
+            you.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
           <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            How refunds are paid
+            Limitation of liability
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            There is no payment gateway here - you pay by PayNow and we confirm it by
-            hand, so refunds work the same way. An approved refund is returned by PayNow
-            to the same mobile number the payment came from, within{" "}
-            <strong className="text-cookie-brown-dark">3-5 business days</strong> of approval.
-            We cannot refund to a different PayNow number or bank account.
+            We take reasonable care in preparing every order, but to the extent
+            permitted by law, our liability for any issue with an order is limited to
+            the amount you paid for that order. We are not liable for indirect or
+            consequential loss, or for reactions arising from allergens disclosed in our
+            ingredient lists or in response to a query you raised with us before
+            ordering.
           </p>
         </section>
 
@@ -101,7 +118,7 @@ export default function RefundPage() {
             Contact
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            For a cancellation, a missed pickup, or a quality issue, reach us on{" "}
+            Questions about these terms? Reach out on{" "}
             <a
               href={whatsappHref}
               target="_blank"
@@ -109,14 +126,7 @@ export default function RefundPage() {
               className="font-semibold text-power-red underline underline-offset-2"
             >
               WhatsApp
-            </a>{" "}
-            with your order reference. See also our{" "}
-            <Link
-              href="/privacy"
-              className="font-semibold text-power-red underline underline-offset-2"
-            >
-              Privacy Policy
-            </Link>
+            </a>
             .
           </p>
         </section>

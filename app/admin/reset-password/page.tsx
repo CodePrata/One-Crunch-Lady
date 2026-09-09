@@ -85,10 +85,10 @@ export default function ResetPasswordPage() {
   return (
     <main className="responsive-shell px-4 py-12 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown">
+        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
           Reset Password
         </h1>
-        <p className="mt-2 text-sm text-cookie-brown">
+        <p className="mt-2 text-sm text-cookie-brown-dark">
           Use your recovery link session to set a new admin password.
         </p>
 
@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
           <div>
             <label
               htmlFor="newPassword"
-              className="mb-1 block text-sm font-semibold text-cookie-brown"
+              className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
             >
               New Password
             </label>
@@ -106,14 +106,14 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
             />
           </div>
 
           <div>
             <label
               htmlFor="confirmPassword"
-              className="mb-1 block text-sm font-semibold text-cookie-brown"
+              className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
             >
               Confirm Password
             </label>
@@ -123,7 +123,7 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown"
+              className="tap-target w-full rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
             />
           </div>
 
@@ -131,7 +131,7 @@ export default function ResetPasswordPage() {
             <p className="text-sm font-semibold text-power-red">{error}</p>
           ) : null}
           {message ? (
-            <p className="text-sm font-semibold text-cookie-brown">{message}</p>
+            <p className="text-sm font-semibold text-cookie-brown-dark">{message}</p>
           ) : null}
 
           <button

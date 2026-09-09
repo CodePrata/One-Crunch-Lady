@@ -43,6 +43,7 @@ ARCHITECTURE.md
 CLAUDE.md
 PRD.md
 /.claude
+skills-lock.json
 
 # supabase
 .mcp.json

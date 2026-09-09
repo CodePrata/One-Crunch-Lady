@@ -106,6 +106,9 @@ export default function RootLayout({
                 <Link href="/privacy" className="tap-target inline-flex items-center text-sm">
                   Privacy Policy
                 </Link>
+                <Link href="/refund" className="tap-target inline-flex items-center text-sm">
+                  Refund & Cancellation Policy
+                </Link>
               </div>
             </div>
           </footer>

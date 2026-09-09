@@ -7,18 +7,30 @@ interface SuccessPageProps {
   params: {
     orderRef: string;
   };
+  searchParams: {
+    t?: string;
+  };
 }
 
-export default async function OrderSuccessPage({ params }: SuccessPageProps) {
+export default async function OrderSuccessPage({ params, searchParams }: SuccessPageProps) {
   const supabase = createClient();
   const paynowNumber = process.env.PAYNOW_NUMBER ?? "PayNow unavailable";
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const { orderRef } = params;
+  const accessToken = searchParams.t;
 
+  if (!accessToken) {
+    redirect("/");
+  }
+
+  // access_token is a random per-order uuid (migration 009): requiring it
+  // alongside order_ref closes the enumeration hole where order_ref's last
+  // segment is a zero-padded sequential id, guessable by counting.
   const { data, error } = await supabase
     .from("orders")
     .select("order_ref,total_price")
     .eq("order_ref", orderRef)
+    .eq("access_token", accessToken)
     .maybeSingle();
 
   if (error || !data) {

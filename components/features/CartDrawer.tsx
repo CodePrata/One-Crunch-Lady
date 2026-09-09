@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Plus, ShoppingCart, TrashSimple, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -98,7 +99,7 @@ export default function CartDrawer() {
 
     const result = await createOrder(payload);
 
-    if (!result.success || !result.orderRef) {
+    if (!result.success || !result.orderRef || !result.accessToken) {
       setSubmissionError(
         result.error ??
           "We could not submit your order right now. Tap WhatsApp below to place your order directly."
@@ -111,7 +112,7 @@ export default function CartDrawer() {
     // Fresh token for whatever the customer orders next this session -
     // reusing a spent one would just replay the same orderRef.
     setIdempotencyToken(crypto.randomUUID());
-    router.push(`/order/success/${result.orderRef}`);
+    router.push(`/order/success/${result.orderRef}?t=${result.accessToken}`);
   });
 
   const isEmpty = lines.length === 0 && unavailableLines.length === 0;
@@ -361,6 +362,19 @@ export default function CartDrawer() {
                             </p>
                           ) : null}
                         </div>
+
+                        <p className="text-xs text-cookie-brown">
+                          Orders are made fresh to order. Review our{" "}
+                          <Link
+                            href="/refund"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold underline underline-offset-2"
+                          >
+                            Refund &amp; Cancellation Policy
+                          </Link>{" "}
+                          before you pay.
+                        </p>
                       </div>
                     ) : null}
                   </>

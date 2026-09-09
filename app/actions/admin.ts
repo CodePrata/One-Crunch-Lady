@@ -87,7 +87,7 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,description,price,image_url,ingredients,is_available")
+    .select("id,name,description,price,image_url,category,ingredients,is_available")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -126,8 +126,8 @@ export async function updateOrderStatus(
         to: updatedOrder.customer_email,
         subject:
           status === "PAID"
-            ? `Order #${updatedOrder.order_ref} — Payment Received, We're Baking!`
-            : `Order #${updatedOrder.order_ref} — Ready for Pickup!`,
+            ? `Order #${updatedOrder.order_ref}: Payment Received, We're Baking!`
+            : `Order #${updatedOrder.order_ref}: Ready for Pickup!`,
         react:
           status === "PAID"
             ? PaymentConfirmedEmail({
@@ -187,6 +187,10 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
   const cleanDescription = data.description.trim();
   const cleanImageUrl = data.image_url.trim();
   const cleanIngredients = data.ingredients.trim();
+  // Nullable per 008_add_category_to_products.sql - its check constraint
+  // rejects an empty/whitespace string, so blank means "no category" (null),
+  // not "".
+  const cleanCategory = data.category.trim() || null;
   const cleanPrice = Number(data.price);
 
   if (
@@ -206,6 +210,7 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
     description: cleanDescription,
     price: cleanPrice,
     image_url: cleanImageUrl || null,
+    category: cleanCategory,
     ingredients: cleanIngredients,
     is_available: true,
   });
@@ -218,6 +223,7 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
         description: cleanDescription,
         price: cleanPrice,
         image_url: cleanImageUrl || null,
+        category: cleanCategory,
         is_available: true,
       });
 
@@ -230,6 +236,7 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
   }
 
   revalidatePath("/admin/orders");
+  revalidatePath("/");
 }
 
 export async function updateProduct(
@@ -243,6 +250,10 @@ export async function updateProduct(
   const cleanDescription = data.description.trim();
   const cleanImageUrl = data.image_url.trim();
   const cleanIngredients = data.ingredients.trim();
+  // Nullable per 008_add_category_to_products.sql - its check constraint
+  // rejects an empty/whitespace string, so blank means "no category" (null),
+  // not "".
+  const cleanCategory = data.category.trim() || null;
   const cleanPrice = Number(data.price);
 
   if (
@@ -262,6 +273,7 @@ export async function updateProduct(
       description: cleanDescription,
       price: cleanPrice,
       image_url: cleanImageUrl || null,
+      category: cleanCategory,
       ingredients: cleanIngredients,
     })
     .eq("id", productId);
@@ -271,4 +283,5 @@ export async function updateProduct(
   }
 
   revalidatePath("/admin/orders");
+  revalidatePath("/");
 }

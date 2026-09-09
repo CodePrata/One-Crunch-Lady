@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buildPayNowQrPayload, renderPayNowQrSvg } from "@/lib/paynow";
 import { createClient } from "@/lib/supabase/server";
 
 interface SuccessPageProps {
@@ -31,6 +32,17 @@ export default async function OrderSuccessPage({ params }: SuccessPageProps) {
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
     : "https://wa.me/";
+
+  // Bound strictly server-side: PAYNOW_NUMBER never reaches the client,
+  // and the amount/reference come from the just-committed order row, not
+  // anything client-supplied. Returns null (no QR, plain-number fallback
+  // stays visible below) if PAYNOW_NUMBER is missing or malformed.
+  const qrPayload = buildPayNowQrPayload({
+    amount: Number(data.total_price),
+    reference: data.order_ref,
+    mobileNumber: process.env.PAYNOW_NUMBER ?? "",
+  });
+  const qrSvg = qrPayload ? await renderPayNowQrSvg(qrPayload) : null;
 
   return (
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
@@ -77,6 +89,21 @@ export default async function OrderSuccessPage({ params }: SuccessPageProps) {
             Final Amount
           </p>
           <p className="font-display text-5xl text-cookie-brown">${formattedTotal}</p>
+
+          {qrSvg ? (
+            <div className="flex flex-col items-center gap-2 pt-1">
+              <div
+                className="w-48 rounded-xl border-2 border-cookie-brown bg-flour-white p-3"
+                // Trusted markup: generated server-side by the qrcode
+                // library from our own payload, never from user input.
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+              />
+              <p className="text-center text-xs text-cookie-brown">
+                Scan with your banking app to PayNow the exact amount, pre-filled.
+              </p>
+            </div>
+          ) : null}
+
           <p className="text-sm text-cookie-brown">
             PayNow to: <span className="font-bold">{paynowNumber}</span>
           </p>

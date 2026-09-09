@@ -2,11 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Radius scale (Shape Consistency Lock)
+ * -------------------------------------
+ * One scale, used by role, everywhere in this codebase:
+ *   rounded-md   -> controls: buttons, inputs, small badges, close/step buttons
+ *   rounded-xl   -> panels: cards, list-item containers, inset image frames
+ *   rounded-2xl  -> top-level containers: hero/section panels, modals, drawers
+ *   rounded-full -> true circles/pills: progress dots, spinners, avatar-style marks
+ * Documented exception: the payment-acknowledgement checkbox uses rounded-sm
+ * (h-4 w-4) because rounded-md is disproportionate at that size.
+ * Do not introduce rounded-lg, rounded-sm, or bare `rounded` outside these cases.
+ */
+
+/*
+ * Z-index scale
+ * -------------
+ * Named utilities below are the only source of stacking order for
+ * page-level fixed/sticky overlays. Local stacking contexts scoped inside
+ * a `relative` ancestor (e.g. a "Sold Out" badge on a product card, or a
+ * submitting-state overlay inside a form panel) are NOT part of this scale
+ * and should keep ordinary low values (z-10/20/30) relative to their own
+ * parent.
+ *   .z-header       (40) -> sticky site header
+ *   .z-cart-bubble  (45) -> floating cart bubble
+ *   .z-modal        (50) -> product detail modal / dialogs
+ *   .z-drawer       (60) -> cart drawer (slides above everything else)
+ *   .z-toast        (65) -> add-to-cart confirmation toast (must read
+ *                           above the drawer/modal that triggered it)
+ *   .z-splash       (70) -> one-time full-viewport hero intro overlay,
+ *                           the only thing that should ever cover the
+ *                           cart drawer
+ */
+
 :root {
   --hero-yellow: #ffd700;
   --power-red: #d32f2f;
   --cookie-brown: #8d6e63;
   --flour-white: #fafafa;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -26,7 +69,7 @@ h6 {
 
 @layer utilities {
   .impact-border {
-    @apply border-[3px] border-black shadow-[4px_4px_0_0_#000000];
+    @apply border-[3px] border-cookie-brown shadow-[4px_4px_0_0_#8D6E63];
   }
 
   .tap-target {
@@ -40,6 +83,18 @@ h6 {
     margin-right: auto;
   }
 
+  /*
+   * Escapes .responsive-shell's centered max-width so a section can run
+   * full-bleed to the viewport edge. Apply to a section wrapper; put
+   * .responsive-shell back on an inner element if that section still
+   * needs a constrained column alongside the full-bleed background/asset.
+   */
+  .full-bleed {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+
   .hero-sunburst {
     background-color: var(--hero-yellow);
     background-image: repeating-conic-gradient(
@@ -51,6 +106,30 @@ h6 {
 
   .impact-lines {
     animation: impact-pop 700ms ease-out both;
+  }
+
+  .z-header {
+    z-index: 40;
+  }
+
+  .z-cart-bubble {
+    z-index: 45;
+  }
+
+  .z-modal {
+    z-index: 50;
+  }
+
+  .z-drawer {
+    z-index: 60;
+  }
+
+  .z-toast {
+    z-index: 65;
+  }
+
+  .z-splash {
+    z-index: 70;
   }
 }
 

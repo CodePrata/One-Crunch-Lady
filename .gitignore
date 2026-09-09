@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -40,6 +42,7 @@ ARCHITECTURE-ESSENTIALS.md
 ARCHITECTURE.md
 CLAUDE.md
 PRD.md
+/.claude
 
 # supabase
 .mcp.json

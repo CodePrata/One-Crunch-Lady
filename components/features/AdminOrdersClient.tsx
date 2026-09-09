@@ -274,7 +274,7 @@ export default function AdminOrdersClient({
           {filteredOrders.map((order) => (
             <article
               key={order.id}
-              className="rounded-lg border-2 border-cookie-brown p-4"
+              className="rounded-xl border-2 border-cookie-brown p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -286,7 +286,7 @@ export default function AdminOrdersClient({
                     ${Number(order.total_price).toFixed(2)}
                   </p>
                   <span
-                    className={`mt-1 inline-flex rounded px-2 py-1 text-xs font-bold uppercase ${
+                    className={`mt-1 inline-flex rounded-md px-2 py-1 text-xs font-bold uppercase ${
                       order.status === "UNPAID"
                         ? "bg-gray-300 text-black"
                         : order.status === "PAID"
@@ -370,6 +370,17 @@ export default function AdminOrdersClient({
                 }
                 className="tap-target rounded-md border-2 border-cookie-brown px-3"
               />
+              <input
+                placeholder="Category (e.g. Cookies, Muffins, Cakes)"
+                value={newProduct.category}
+                onChange={(event) =>
+                  setNewProduct((current) => ({
+                    ...current,
+                    category: event.target.value,
+                  }))
+                }
+                className="tap-target rounded-md border-2 border-cookie-brown px-3"
+              />
             </div>
             <input
               required
@@ -439,7 +450,7 @@ export default function AdminOrdersClient({
           {products.map((product) => (
             <div
               key={product.id}
-              className="rounded-lg border-2 border-cookie-brown p-3"
+              className="rounded-xl border-2 border-cookie-brown p-3"
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <p className="font-semibold text-cookie-brown">{product.name}</p>
@@ -496,6 +507,7 @@ export default function AdminOrdersClient({
                       className="tap-target rounded-md border-2 border-cookie-brown px-3"
                     />
                     <input
+                      placeholder="Category (e.g. Cookies, Muffins, Cakes)"
                       value={editDraft.category}
                       onChange={(event) =>
                         setEditDraft((current) => ({

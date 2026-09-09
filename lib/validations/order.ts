@@ -3,10 +3,7 @@ import { z } from "zod";
 const singaporePhoneRegex = /^(?:\+65)?[89]\d{7}$/;
 
 export const orderSchema = z.object({
-  customerName: z
-    .string()
-    .min(2, "Name must be at least 2 characters.")
-    .trim(),
+  customerName: z.string().min(2, "Name must be at least 2 characters.").trim(),
   customerEmail: z.string().email("Please enter a valid email address."),
   customerPhone: z
     .string()
@@ -21,10 +18,21 @@ export const orderSchema = z.object({
       "Please select at least 1 item."
     ),
   paymentAcknowledged: z.boolean().refine((value) => value === true, {
-    message:
-      "You must acknowledge PayNow payment confirmation before submitting.",
+    message: "You must acknowledge PayNow payment confirmation before submitting.",
   }),
   idempotencyToken: z.string().uuid(),
 });
 
 export type OrderFormValues = z.infer<typeof orderSchema>;
+
+// Just the contact + consent fields, for forms (like the cart drawer's
+// checkout) where quantities come from elsewhere (the cart store) rather
+// than from a form field bound to react-hook-form.
+export const checkoutContactSchema = orderSchema.pick({
+  customerName: true,
+  customerEmail: true,
+  customerPhone: true,
+  paymentAcknowledged: true,
+});
+
+export type CheckoutContactValues = z.infer<typeof checkoutContactSchema>;

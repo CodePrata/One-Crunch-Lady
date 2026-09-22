@@ -1,12 +1,16 @@
-import ProductCatalog from "@/components/features/ProductCatalog";
+import Link from "next/link";
+import ProductCard from "@/components/features/ProductCard";
 import { getCatalogProducts } from "@/lib/products";
 
 export const revalidate = 60;
+
+const FEATURED_PRODUCT_COUNT = 3;
 
 export default async function Home() {
   // Same cached call the storefront layout already made for the cart
   // shell (lib/products.ts's unstable_cache dedupes this to one query).
   const catalogProducts = await getCatalogProducts();
+  const featuredProducts = catalogProducts.slice(0, FEATURED_PRODUCT_COUNT);
 
   return (
     <main>
@@ -35,7 +39,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="origin-story" className="pt-10 tablet:pt-14 scroll-mt-20">
+      <section className="pt-10 tablet:pt-14">
         <div className="responsive-shell px-4 tablet:px-6 desktop:px-8">
           <div className="relative rounded-2xl border-[4px] border-cookie-brown bg-flour-white p-6 shadow-[8px_8px_0_0_#8D6E63] [transform:rotate(-1deg)] tablet:p-8">
             <div className="rounded-xl border-[3px] border-cookie-brown bg-hero-yellow/30 p-5 [transform:skew(-1deg)]">
@@ -44,25 +48,51 @@ export default async function Home() {
                 One Crunch Lady began as a kitchen experiment powered by family grit, midnight
                 baking sessions, and a dream to turn every bite into a bold memory.
               </p>
-              <span className="mt-5 text-base font-bold leading-relaxed text-cookie-brown-dark tablet:text-lg">
-                Baked with Mom Strength
-              </span>
+              <Link
+                href="/story"
+                className="tap-target mt-5 inline-flex items-center justify-center rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold text-cookie-brown-dark transition hover:bg-flour-white"
+              >
+                Read Our Story
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="pt-10 tablet:pt-14">
-        <div className="responsive-shell px-4 pb-16 tablet:px-6 desktop:px-8">
-          <div className="mb-5 flex items-end justify-between gap-3">
-            <h2 className="font-display text-4xl uppercase text-cookie-brown-dark tablet:text-5xl">
-              Flavours
-            </h2>
-          </div>
+      {featuredProducts.length > 0 ? (
+        <section className="pt-10 tablet:pt-14">
+          <div className="responsive-shell px-4 pb-16 tablet:px-6 desktop:px-8">
+            <div className="mb-5 flex items-end justify-between gap-3">
+              <h2 className="font-display text-4xl uppercase text-cookie-brown-dark tablet:text-5xl">
+                Featured Flavours
+              </h2>
+              <Link
+                href="/products"
+                className="tap-target inline-flex items-center text-sm font-semibold text-cookie-brown-dark transition hover:text-power-red"
+              >
+                View All Products
+              </Link>
+            </div>
 
-          <ProductCatalog products={catalogProducts} />
-        </div>
-      </section>
+            <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
+              {featuredProducts.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  description={product.description}
+                  price={product.price}
+                  imageUrl={product.imageUrl}
+                  category={product.category}
+                  ingredients={product.ingredients}
+                  isAvailable={product.isAvailable}
+                  priority={index === 0}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

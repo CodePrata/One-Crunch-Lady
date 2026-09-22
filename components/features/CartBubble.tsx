@@ -1,13 +1,21 @@
 "use client";
 
 import { ShoppingCart } from "@phosphor-icons/react";
+import { usePathname } from "next/navigation";
 import { useCartCatalogItems } from "@/components/features/CartCatalogProvider";
 import { useCartHasHydrated, useCartStore } from "@/lib/store/cart";
 
 export default function CartBubble() {
+  const pathname = usePathname();
   const hasHydrated = useCartHasHydrated();
   const toggleCart = useCartStore((state) => state.toggleCart);
   const { itemCount } = useCartCatalogItems();
+
+  // Redundant with the full /cart page itself - showing a button that
+  // opens a drawer duplicating the page you're already on is just noise.
+  if (pathname === "/cart") {
+    return null;
+  }
 
   // Gate the badge on hydration so the server-rendered pass and the first
   // client paint agree on "no badge" - the real count applies a tick later.

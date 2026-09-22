@@ -18,6 +18,20 @@ export interface CartLineItem {
 export interface CartToast {
   id: number;
   message: string;
+  /** How many times this same message has fired since it last appeared (e.g. spam-clicking Add to Cart). 1 the first time. */
+  count: number;
+  /**
+   * Whether CartToast should render the "×N" suffix once count > 1.
+   * False for toasts where repeating the trigger doesn't mean "N more
+   * were added" - e.g. spam-clicking Add to Cart after a product is
+   * already at CART_MAX_ITEM_QUANTITY: nothing more is being added, so a
+   * growing "×N" would be actively misleading.
+   */
+  showCount: boolean;
+}
+
+export interface ShowToastOptions {
+  showCount?: boolean;
 }
 
 interface CartState {
@@ -44,7 +58,7 @@ interface CartState {
   closeCart: () => void;
   toggleCart: () => void;
   /** Shows a brief confirmation toast (e.g. "X added to cart"). Never persisted. */
-  showToast: (message: string) => void;
+  showToast: (message: string, options?: ShowToastOptions) => void;
   /** Clears the toast only if `id` still matches the current one - guards
    *  against a stale auto-dismiss timer clearing a newer toast. */
   dismissToast: (id: number) => void;
@@ -118,9 +132,19 @@ export const useCartStore = create<CartState>()(
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
 
-      showToast: (message) => {
+      showToast: (message, options) => {
+        const showCount = options?.showCount ?? true;
+        const current = get().toast;
+        // Same message still showing (e.g. spam-clicking Add to Cart on
+        // the same product): bump its count and keep its id rather than
+        // minting a new one - a new id would force CartToast's
+        // AnimatePresence to exit+re-enter the pill on every click.
+        if (current && current.message === message) {
+          set({ toast: { ...current, count: current.count + 1 } });
+          return;
+        }
         toastIdCounter += 1;
-        set({ toast: { id: toastIdCounter, message } });
+        set({ toast: { id: toastIdCounter, message, count: 1, showCount } });
       },
 
       dismissToast: (id) => {

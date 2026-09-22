@@ -2,7 +2,7 @@
 
 import { Check, Plus } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import { useCartStore } from "@/lib/store/cart";
+import { CART_MAX_ITEM_QUANTITY, useCartStore } from "@/lib/store/cart";
 
 const CONFIRMATION_DURATION_MS = 900;
 
@@ -27,6 +27,9 @@ export default function AddToCartButton({
 }: AddToCartButtonProps) {
   const addItem = useCartStore((state) => state.addItem);
   const showToast = useCartStore((state) => state.showToast);
+  const quantityInCart = useCartStore(
+    (state) => state.items.find((item) => item.productId === productId)?.quantity ?? 0
+  );
   const [justAdded, setJustAdded] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -39,6 +42,18 @@ export default function AddToCartButton({
   }, []);
 
   function handleClick() {
+    // addItem() silently clamps at CART_MAX_ITEM_QUANTITY - past that
+    // point it's a no-op, so firing the normal "added to cart" toast
+    // (and letting its ×N counter keep climbing) would misreport what
+    // just happened: nothing was added. Check the cap here instead and
+    // show a distinct message with no counter of its own.
+    if (quantityInCart >= CART_MAX_ITEM_QUANTITY) {
+      showToast(`${productName} is already at the max quantity (${CART_MAX_ITEM_QUANTITY})`, {
+        showCount: false,
+      });
+      return;
+    }
+
     addItem(productId);
     showToast(`${productName} added to cart`);
     setJustAdded(true);

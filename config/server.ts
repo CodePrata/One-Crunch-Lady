@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { resolvePayNowProxy } from "@/lib/paynow";
 
 // Server-only configuration, validated once at module load. Importing
 // this from a Client Component fails the build (the `server-only`
@@ -16,7 +17,13 @@ import { z } from "zod";
 const serverEnvSchema = z.object({
   PAYNOW_NUMBER: z
     .string()
-    .min(1, "PAYNOW_NUMBER is required to render the PayNow QR code and payment instructions."),
+    .min(1, "PAYNOW_NUMBER is required to render the PayNow QR code and payment instructions.")
+    .refine((value) => resolvePayNowProxy(value) !== null, {
+      message:
+        "PAYNOW_NUMBER must be a valid Singapore mobile number (8/9XXXXXXX, optionally " +
+        "+65/65-prefixed) or a valid UEN (see lib/paynow.ts normalizeUen) - a value that " +
+        "doesn't match either silently produces no PayNow QR code on every order.",
+    }),
   OWNER_EMAIL: z
     .string()
     .email("OWNER_EMAIL must be a valid email address (it receives new-order alerts)."),

@@ -11,17 +11,31 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 // kept local to this one effect.
 const BURST_COLOR = "#E6C200";
 
-// Read server-side (see app/page.tsx) so a returning visitor's initial
-// HTML skips the gate entirely - not just quickly, but never rendered.
-export const SPLASH_DISMISSED_COOKIE = "splash_dismissed";
-const SPLASH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year
+// Per-browser only - deliberately NOT a cookie. A cookie made the splash
+// gate's dismissed/not-dismissed state part of the server-rendered HTML
+// (read via cookies() in app/(storefront)/layout.tsx), which forced that
+// whole route into per-request dynamic rendering and, on top of that,
+// could serve a cached "not dismissed" response to a returning visitor
+// with no way for this state to vary per browser once cached. localStorage
+// is read client-side only - "/" stays fully static, and a pre-paint
+// inline script (app/layout.tsx) checks this same key to avoid a flash of
+// the gate before React hydrates. See the CSS override in globals.css.
+export const SPLASH_DISMISSED_STORAGE_KEY = "splash_dismissed";
 
 function markSplashDismissed() {
   try {
-    document.cookie = `${SPLASH_DISMISSED_COOKIE}=true; path=/; max-age=${SPLASH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+    localStorage.setItem(SPLASH_DISMISSED_STORAGE_KEY, "true");
   } catch {
-    // document.cookie can throw in locked-down privacy contexts - harmless
+    // localStorage can throw in locked-down privacy contexts - harmless
     // to skip; worst case the gate just replays on the next visit.
+  }
+}
+
+function readSplashDismissed(): boolean {
+  try {
+    return localStorage.getItem(SPLASH_DISMISSED_STORAGE_KEY) === "true";
+  } catch {
+    return false;
   }
 }
 
@@ -35,28 +49,30 @@ type Phase = "gate" | "exiting" | "revealed";
  * and inert until revealed, so it can slide/fade into place instead of
  * popping in.
  *
- * The one exception is `prefers-reduced-motion`: the gate's entire value
+ * Initial phase is always "gate" - identical on server and client, so "/"
+ * renders the same static HTML for every visitor (cacheable, no per-request
+ * cookie read). A returning visitor's dismissal is applied a moment after
+ * mount, once localStorage can be read; the pre-paint script + CSS
+ * override (see globals.css) hide the gate and reveal children before
+ * that, so there's no visible flash despite the state not being known
+ * until the client runs.
+ *
+ * The other exception is `prefers-reduced-motion`: the gate's entire value
  * is the animated flourish, so a reduced-motion visitor skips it outright
  * and lands directly on the real content - forcing an extra required
  * click through a purely decorative screen would be an accessibility
  * regression, not a feature.
  */
-export default function IntroLanding({
-  children,
-  hasDismissedSplash = false,
-}: {
-  children: React.ReactNode;
-  /** From the server-read `splash_dismissed` cookie - see app/page.tsx. */
-  hasDismissedSplash?: boolean;
-}) {
+export default function IntroLanding({ children }: { children: React.ReactNode }) {
   const reduceMotion = useReducedMotion();
-  const [phase, setPhase] = useState<Phase>(hasDismissedSplash ? "revealed" : "gate");
+  const [phase, setPhase] = useState<Phase>("gate");
   const ctaRef = useRef<HTMLButtonElement>(null);
 
   useBodyScrollLock(phase !== "revealed");
 
   useEffect(() => {
-    if (hasDismissedSplash) {
+    if (readSplashDismissed()) {
+      setPhase("revealed");
       return;
     }
     if (reduceMotion) {
@@ -65,7 +81,7 @@ export default function IntroLanding({
       return;
     }
     ctaRef.current?.focus();
-  }, [reduceMotion, hasDismissedSplash]);
+  }, [reduceMotion]);
 
   function handleEnter() {
     if (phase !== "gate") {
@@ -135,12 +151,15 @@ export default function IntroLanding({
               }
             }}
           >
+            {/* unoptimized: local /public asset - see the matching comment
+                in components/layout/Header.tsx for why. */}
             <Image
               src="/ocl_logo-nobg.png"
               alt="One Crunch Lady"
-              width={224}
-              height={224}
-              className="h-56 w-56 object-contain"
+              width={320}
+              height={320}
+              unoptimized
+              className="h-64 w-64 object-contain tablet:h-80 tablet:w-80"
               priority
             />
           </motion.div>
@@ -175,12 +194,14 @@ export default function IntroLanding({
       ) : null}
 
       <motion.div
+        data-splash-children
         aria-hidden={phase !== "revealed"}
-        // `false` for a returning visitor (hasDismissedSplash): render
-        // already at the "animate" resting state with no enter transition
-        // at all, since there's no gate to reveal from - otherwise this
-        // would still fade/slide in on every load despite never gating.
-        initial={hasDismissedSplash ? false : { opacity: 0, y: 40 }}
+        // Always starts from the same pre-reveal state (matches the
+        // "gate" phase both phases start at, server and client alike).
+        // For a returning visitor this is masked by the CSS override in
+        // globals.css until this effect's setPhase("revealed") catches
+        // up a moment after mount - see the component doc comment above.
+        initial={{ opacity: 0, y: 40 }}
         animate={phase === "revealed" ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className={phase !== "revealed" ? "pointer-events-none" : undefined}

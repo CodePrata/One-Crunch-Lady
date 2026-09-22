@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { Resend } from "resend";
 import { emailFrom, resendApiKey } from "@/config/server";
 import { pickupHours } from "@/config/site";
@@ -173,6 +174,7 @@ export async function toggleProductAvailability(
 
   revalidatePath("/admin/orders");
   revalidatePath('/');
+  revalidateTag(PRODUCTS_CACHE_TAG);
 }
 
 function slugifyProductName(name: string): string {
@@ -240,6 +242,7 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
 
   revalidatePath("/admin/orders");
   revalidatePath("/");
+  revalidateTag(PRODUCTS_CACHE_TAG);
 }
 
 export async function updateProduct(
@@ -287,5 +290,6 @@ export async function updateProduct(
   }
 
   revalidatePath("/admin/orders");
+  revalidateTag(PRODUCTS_CACHE_TAG);
   revalidatePath("/");
 }

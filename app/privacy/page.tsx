@@ -116,10 +116,6 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc space-y-1 pl-5 text-base leading-relaxed text-cookie-brown-dark">
             <li>
-              <strong className="text-cookie-brown-dark">splash_dismissed</strong> -
-              remembers you have seen the intro screen, so it does not show again.
-            </li>
-            <li>
               <strong className="text-cookie-brown-dark">last_submission</strong> - a
               short-lived, security-only cookie that stops the order form being
               submitted twice in a row.
@@ -127,6 +123,11 @@ export default function PrivacyPage() {
             <li>
               <strong className="text-cookie-brown-dark">Supabase auth cookies</strong> -
               set only if you are the shop owner signed in to the admin dashboard.
+            </li>
+            <li>
+              <strong className="text-cookie-brown-dark">splash_dismissed</strong> - kept
+              in your browser&rsquo;s local storage (not a cookie) to remember you have
+              seen the intro screen, so it does not show again.
             </li>
             <li>
               <strong className="text-cookie-brown-dark">Your cart</strong> - kept in

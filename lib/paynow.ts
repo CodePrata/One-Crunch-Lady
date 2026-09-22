@@ -27,17 +27,27 @@ export interface PayNowQrInput {
   amount: number;
   /** Human-facing order_ref (e.g. "OCL-2609-0001"), carried as the bill/reference number. */
   reference: string;
-  /** Raw PAYNOW_NUMBER env value. Normalized internally; never trust its format. */
+  /**
+   * Raw PAYNOW_NUMBER env value - despite the name, this may be either a
+   * Singapore mobile number or a UEN (ACRA business registration number).
+   * The proxy type is auto-detected and normalized internally; never trust
+   * its format at the call site.
+   */
   mobileNumber: string;
+}
+
+/** PayNow proxy type digit for EMVCo tag 26-01, per the ABS/SGQR spec. */
+export type PayNowProxyType = "0" | "2"; // "0" = mobile number, "2" = UEN
+
+export interface PayNowProxy {
+  type: PayNowProxyType;
+  value: string;
 }
 
 /**
  * Normalizes a Singapore mobile number into the "+65XXXXXXXX" form the
  * PayNow proxy field expects. Mirrors the shape validated by
- * lib/validations/order.ts's singaporePhoneRegex. Returns null (rather
- * than throwing) when the input doesn't look like a valid SG mobile
- * number, so a misconfigured PAYNOW_NUMBER degrades to "no QR rendered"
- * instead of a broken success page.
+ * lib/validations/order.ts's singaporePhoneRegex.
  */
 function normalizeSingaporeMobile(raw: string): string | null {
   const digitsAndPlus = raw.replace(/[^\d+]/g, "");
@@ -51,6 +61,56 @@ function normalizeSingaporeMobile(raw: string): string | null {
   if (/^[89]\d{7}$/.test(digitsAndPlus)) {
     return `+65${digitsAndPlus}`;
   }
+  return null;
+}
+
+/**
+ * Normalizes a Singapore UEN (Unique Entity Number, issued by ACRA) into
+ * its canonical uppercase form. Accepts the three official UEN formats:
+ *   - Businesses (ROB):                 8 digits + 1 check letter (9 chars)
+ *   - Local companies (ROC) and others: 9 digits + 1 check letter (10 chars)
+ *   - Other entities (societies, etc.): T/S/R + 2-digit year + 2 letters
+ *                                        + 4 digits + 1 check letter (10 chars)
+ * Unlike a mobile number, a UEN carries no country-code prefix in the
+ * PayNow proxy value - it's used exactly as registered with ACRA.
+ */
+function normalizeUen(raw: string): string | null {
+  const candidate = raw.trim().toUpperCase();
+
+  if (/^\d{8}[A-Z]$/.test(candidate)) {
+    return candidate;
+  }
+  if (/^\d{9}[A-Z]$/.test(candidate)) {
+    return candidate;
+  }
+  if (/^[TSR]\d{2}[A-Z]{2}\d{4}[A-Z]$/.test(candidate)) {
+    return candidate;
+  }
+  return null;
+}
+
+/**
+ * Detects whether `raw` (the PAYNOW_NUMBER env value) is a Singapore
+ * mobile number or a UEN, and normalizes it accordingly. Returns null
+ * (rather than throwing) when it matches neither, so a misconfigured
+ * PAYNOW_NUMBER degrades to "no QR rendered" instead of a broken success
+ * page - mirrors the previous mobile-only behavior of this function.
+ *
+ * Exported so config/server.ts can validate PAYNOW_NUMBER against this
+ * exact same logic at boot, rather than duplicating the format rules in
+ * a second regex that could drift out of sync with this one.
+ */
+export function resolvePayNowProxy(raw: string): PayNowProxy | null {
+  const normalizedMobile = normalizeSingaporeMobile(raw);
+  if (normalizedMobile) {
+    return { type: "0", value: normalizedMobile };
+  }
+
+  const normalizedUen = normalizeUen(raw);
+  if (normalizedUen) {
+    return { type: "2", value: normalizedUen };
+  }
+
   return null;
 }
 
@@ -86,8 +146,9 @@ export function crc16CcittFalse(input: string): string {
  *   01  Point of Initiation Method        "12" (dynamic / fixed amount)
  *   26  Merchant Account Information (PayNow template)
  *         00  Globally Unique Identifier  "SG.PAYNOW"
- *         01  Proxy Type                  "0" (mobile number)
- *         02  Proxy Value                 "+65XXXXXXXX"
+ *         01  Proxy Type                  "0" mobile number, or "2" UEN
+ *         02  Proxy Value                 "+65XXXXXXXX" (mobile) or the
+ *                                          UEN as registered with ACRA
  *         03  Amount Editable             "0" (not editable - amount is fixed)
  *   52  Merchant Category Code            "0000" (unspecified)
  *   53  Transaction Currency              "702" (SGD, ISO 4217 numeric)
@@ -100,9 +161,9 @@ export function crc16CcittFalse(input: string): string {
  *   63  CRC                               CRC-16/CCITT-FALSE, computed last
  *
  * Returns null if `mobileNumber` (PAYNOW_NUMBER) doesn't normalize to a
- * valid SG mobile number, or `amount` isn't a positive finite number -
- * callers should fall back to the plain-text PayNow number display
- * rather than rendering a broken QR.
+ * valid SG mobile number or UEN (see resolvePayNowProxy), or `amount`
+ * isn't a positive finite number - callers should fall back to the
+ * plain-text PayNow number display rather than rendering a broken QR.
  *
  * IMPORTANT: this payload is built strictly to the documented EMVCo/SGQR
  * field spec and the CRC is checksum-verified against the standard
@@ -117,8 +178,8 @@ export function buildPayNowQrPayload({
   reference,
   mobileNumber,
 }: PayNowQrInput): string | null {
-  const normalizedMobile = normalizeSingaporeMobile(mobileNumber);
-  if (!normalizedMobile) {
+  const proxy = resolvePayNowProxy(mobileNumber);
+  if (!proxy) {
     return null;
   }
   if (!Number.isFinite(amount) || amount <= 0) {
@@ -129,7 +190,7 @@ export function buildPayNowQrPayload({
   const billReference = reference.slice(0, 25);
 
   const merchantAccountInfo =
-    tlv("00", PAYNOW_GUID) + tlv("01", "0") + tlv("02", normalizedMobile) + tlv("03", "0");
+    tlv("00", PAYNOW_GUID) + tlv("01", proxy.type) + tlv("02", proxy.value) + tlv("03", "0");
 
   const additionalData = tlv("01", billReference);
 

@@ -134,6 +134,32 @@ h6 {
   }
 }
 
+/*
+ * Splash pre-paint override
+ * --------------------------
+ * The splash gate's dismissed/not-dismissed state lives in localStorage
+ * (per-browser, never sent to the server - see components/features/
+ * IntroLanding.tsx), which keeps "/" fully static and cacheable (no
+ * cookies() read gating it into per-request rendering). To avoid a flash
+ * of the gate for a returning visitor whose JS hasn't run yet, a
+ * `beforeInteractive` inline script in app/layout.tsx sets
+ * `data-splash-seen` on <html> synchronously, before first paint, by
+ * reading localStorage directly. These rules are what that attribute
+ * actually does: hide the gate and force children fully visible,
+ * overriding Motion's inline styles (hence !important) until React
+ * hydrates and IntroLanding's own state catches up to match - at which
+ * point they agree and nothing visibly changes.
+ */
+html[data-splash-seen="true"] .z-splash {
+  display: none !important;
+}
+
+html[data-splash-seen="true"] [data-splash-children] {
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
 @media (min-width: 768px) {
   .responsive-shell {
     width: min(100%, 768px);

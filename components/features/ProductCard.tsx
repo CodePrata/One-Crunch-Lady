@@ -1,7 +1,6 @@
 import Image from "next/image";
 import AddToCartButton from "@/components/features/AddToCartButton";
 import ProductDetail from "@/components/features/ProductDetail";
-import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductCardProps {
   id: string;
@@ -76,7 +75,7 @@ export default function ProductCard({
       <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
         {imageUrl ? (
           <Image
-            src={getOptimizedImage(imageUrl)}
+            src={imageUrl}
             alt={name}
             fill
             className="object-cover"
@@ -84,6 +83,8 @@ export default function ProductCard({
             // .responsive-shell container caps out at 375px/768px/1280px
             // (minus its px-4/6/8 padding and the grid's gap-4), so a plain
             // 100vw/50vw/33vw hint would overestimate on wide viewports.
+            // The Cloudinary transform (f_auto,q_auto, correct width) is
+            // applied by lib/cloudinary-loader.ts, not baked into `src`.
             sizes="(max-width: 767px) 343px, (max-width: 1279px) 352px, 395px"
             priority={priority}
           />

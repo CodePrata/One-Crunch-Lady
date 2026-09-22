@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // Bump this whenever the policy text changes below - it is the only source
 // for the "Last updated" date shown on the page, so it can't silently drift
 // from what the page actually says.
-const PRIVACY_POLICY_LAST_UPDATED = "9 September 2026";
+const PRIVACY_POLICY_LAST_UPDATED = "23 September 2026";
 
 export default function PrivacyPage() {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
               database and admin login, so it holds your order and contact details.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Vercel</strong> - hosts this
+              <strong className="text-cookie-brown-dark">Netlify</strong> - hosts this
               website and serves every page you view.
             </li>
             <li>
@@ -134,10 +134,6 @@ export default function PrivacyPage() {
               leaves your device until you check out.
             </li>
           </ul>
-          <p className="text-base leading-relaxed text-cookie-brown-dark">
-            We also use Vercel Analytics, which is cookieless and does not identify you
-            individually.
-          </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">

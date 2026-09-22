@@ -1,0 +1,15 @@
+# Intentionally minimal. Netlify auto-detects Next.js and applies the
+# OpenNext adapter with zero configuration - do NOT add [build] command,
+# publish, or [[plugins]] here. Netlify's own guidance: "we recommend
+# that you don't pin the adapter version... we will automatically use
+# the latest version on each project build for you." Declaring those
+# keys here would replace a working, self-updating build with a stale
+# one this file would then have to maintain.
+#
+# The only thing auto-detection can't provide is a credit guard, since
+# an ignore command must come from committed config (or the UI). This
+# cancels the build - for free, 0 credits - when a push only touches
+# docs or hand-applied SQL migrations that can't affect build output.
+# Exit 0 cancels the build, non-zero lets it proceed.
+[build]
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)*.md' ':(exclude)supabase/migrations/*'"

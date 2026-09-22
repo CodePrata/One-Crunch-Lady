@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { InstagramLogo, TiktokLogo } from "@phosphor-icons/react/dist/ssr";
-import { Analytics } from "@vercel/analytics/react";
 import { Bangers, Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
@@ -149,7 +148,6 @@ export default function RootLayout({
             </div>
           </footer>
         </div>
-        <Analytics />
       </body>
     </html>
   );

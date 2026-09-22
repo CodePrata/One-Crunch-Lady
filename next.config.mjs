@@ -58,12 +58,27 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Custom loader sends every <Image> straight to Cloudinary
+    // (lib/cloudinary-loader.ts) instead of through Next's default
+    // loader, which Netlify rewrites to /.netlify/images - billing
+    // Netlify bandwidth/request credits to re-encode an image Cloudinary
+    // already optimized. remotePatterns is kept as a guard in case a
+    // future <Image> opts back into the default loader.
+    loader: "custom",
+    loaderFile: "./lib/cloudinary-loader.ts",
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
     ],
+    // Narrowed from Next's 16-value default to the widths actually
+    // rendered in the app (ProductCard: 343/352/395, ProductDetail:
+    // 700 + 100vw on mobile, CartDrawer: 64), plus 2x-DPR headroom and
+    // the project's mobile/tablet/desktop breakpoints (375/768/1280).
+    // Keeps the set of possible Cloudinary transformations predictable.
+    deviceSizes: [375, 750, 768, 1280, 1536],
+    imageSizes: [64, 128, 343, 395, 700],
   },
   async headers() {
     return [

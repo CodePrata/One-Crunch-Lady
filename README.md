@@ -1,41 +1,43 @@
 Built by CodePrata.
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+One Crunch Lady - a single-page cookie storefront for a Singapore home bakery, built with Next.js 14 (App Router). See [CLAUDE.md](CLAUDE.md) for architecture and conventions.
 
 ## Getting Started
 
-First, run the development server:
+Copy `.env.example` to `.env.local` and fill in the required values, then:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Before committing, stop the dev server and run the full local gate:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run verify   # lint + type-check + test + production build
+```
 
-## Learn More
+> A running `npm run dev` makes `npm run build` fail with `EPERM` on `.next/trace` on Windows - stop the dev server first.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Hosted on Netlify. Netlify auto-detects Next.js and builds it with zero configuration - `netlify.toml` in this repo intentionally contains only a `[build] ignore` guard (see the comment in that file), not build settings.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Production deploys cost Netlify build credits (15 per deploy, flat); everything else is free** - pushing branches, Deploy Previews, branch deploys, failed builds, and rollbacks all cost 0. So the workflow batches releases instead of deploying on every commit:
 
-## Deploy on Vercel
+- `main` is the everyday integration branch. Push and merge to it freely - it never triggers a Netlify build.
+- `production` is Netlify's production branch. A release is a deliberate fast-forward:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+  ```bash
+  git checkout main && git pull
+  npm run verify
+  git push origin main:production
+  ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Deploy Previews (opened automatically on any pushed branch) are a full, free production-grade build - use one to verify a change before releasing, rather than releasing to check.
+- Rollback is free: Netlify → Deploys → pick a previous production deploy → **Publish deploy**.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

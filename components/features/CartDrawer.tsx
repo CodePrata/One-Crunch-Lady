@@ -12,7 +12,6 @@ import { createOrder } from "@/app/actions/orders";
 import { useCartCatalogItems } from "@/components/features/CartCatalogProvider";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import { getOptimizedImage } from "@/lib/cloudinary";
 import { CART_MAX_ITEM_QUANTITY, useCartStore } from "@/lib/store/cart";
 import {
   checkoutContactSchema,
@@ -183,7 +182,7 @@ export default function CartDrawer() {
                           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
                             {line.product.imageUrl ? (
                               <Image
-                                src={getOptimizedImage(line.product.imageUrl)}
+                                src={line.product.imageUrl}
                                 alt={line.product.name}
                                 fill
                                 className="object-cover"

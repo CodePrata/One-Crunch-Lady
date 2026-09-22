@@ -9,6 +9,7 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "playwright test",
+    "verify": "npm run lint && npm run type-check && npm test && npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
@@ -20,7 +21,6 @@
     "@react-email/render": "^2.0.7",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
-    "@vercel/analytics": "^2.0.1",
     "motion": "^13.2.0",
     "next": "14.2.35",
     "next-cloudinary": "^6.17.5",

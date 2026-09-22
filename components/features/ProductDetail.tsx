@@ -5,7 +5,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import AddToCartButton from "@/components/features/AddToCartButton";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import { getOptimizedImage } from "@/lib/cloudinary";
 
 interface ProductDetailProps {
   id: string;
@@ -142,7 +141,7 @@ export default function ProductDetail({
               <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
                 {imageUrl ? (
                   <Image
-                    src={getOptimizedImage(imageUrl)}
+                    src={imageUrl}
                     alt={name}
                     fill
                     className="object-cover"

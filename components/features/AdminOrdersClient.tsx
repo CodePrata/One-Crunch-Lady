@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminBannersPanel from "@/components/features/admin/AdminBannersPanel";
 import AdminOrdersPanel from "@/components/features/admin/AdminOrdersPanel";
 import AdminProductsPanel from "@/components/features/admin/AdminProductsPanel";
+import AdminPromoCodesPanel from "@/components/features/admin/AdminPromoCodesPanel";
 import { createClient } from "@/lib/supabase/client";
 
 interface AdminOrder {
@@ -40,18 +41,33 @@ interface AdminBanner {
   image_height: number | null;
 }
 
+interface AdminPromoCode {
+  id: string;
+  code: string;
+  discount_type: "PERCENT" | "FIXED";
+  discount_value: number;
+  min_subtotal: number;
+  max_redemptions: number | null;
+  redemption_count: number;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+}
+
 interface AdminOrdersClientProps {
   initialOrders: AdminOrder[];
   initialProducts: AdminProduct[];
   initialBanners: AdminBanner[];
+  initialPromoCodes: AdminPromoCode[];
 }
 
-type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS";
+type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS" | "PROMO_CODES";
 
 const TABS: Array<{ id: AdminTab; label: string }> = [
   { id: "ORDERS", label: "Orders" },
   { id: "PRODUCTS", label: "Products" },
   { id: "BANNERS", label: "Banners" },
+  { id: "PROMO_CODES", label: "Promo Codes" },
 ];
 
 /**
@@ -67,6 +83,7 @@ export default function AdminOrdersClient({
   initialOrders,
   initialProducts,
   initialBanners,
+  initialPromoCodes,
 }: AdminOrdersClientProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -128,6 +145,9 @@ export default function AdminOrdersClient({
       ) : null}
       {activeTab === "BANNERS" ? (
         <AdminBannersPanel initialBanners={initialBanners} onFeedback={setFeedback} />
+      ) : null}
+      {activeTab === "PROMO_CODES" ? (
+        <AdminPromoCodesPanel initialPromoCodes={initialPromoCodes} onFeedback={setFeedback} />
       ) : null}
 
       {feedback ? (

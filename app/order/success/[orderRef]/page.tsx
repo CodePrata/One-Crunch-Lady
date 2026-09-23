@@ -28,7 +28,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
   // segment is a zero-padded sequential id, guessable by counting.
   const { data, error } = await supabase
     .from("orders")
-    .select("order_ref,total_price")
+    .select("order_ref,total_price,subtotal,discount_amount,promo_code")
     .eq("order_ref", orderRef)
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -44,6 +44,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
   }
 
   const formattedTotal = Number(data.total_price).toFixed(2);
+  const hasDiscount = Boolean(data.promo_code && data.discount_amount && Number(data.discount_amount) > 0);
   const whatsappMessage = encodeURIComponent(
     `Hi One Crunch Lady, here is my payment proof for Order #${data.order_ref}!`
   );
@@ -105,6 +106,18 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
         </div>
 
         <div className="mt-6 space-y-3 rounded-xl border-2 border-cookie-brown p-4">
+          {hasDiscount ? (
+            <div className="space-y-1 border-b-2 border-cookie-brown/30 pb-3">
+              <div className="flex items-center justify-between text-sm text-cookie-brown-dark">
+                <span>Subtotal</span>
+                <span>${Number(data.subtotal ?? data.total_price).toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm font-semibold text-power-red">
+                <span>Discount ({data.promo_code})</span>
+                <span>-${Number(data.discount_amount).toFixed(2)}</span>
+              </div>
+            </div>
+          ) : null}
           <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
             Final Amount
           </p>

@@ -11,6 +11,7 @@ import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
 import { bannerSchema } from "@/lib/validations/banner";
 import { productDiscountSchema, productSchema } from "@/lib/validations/product";
+import { promoCodeSchema } from "@/lib/validations/promo";
 
 type AdminOrderStatus = "PAID" | "READY";
 
@@ -468,4 +469,107 @@ export async function deleteBanner(bannerId: string): Promise<void> {
   revalidatePath("/admin/orders");
   revalidatePath("/promotion");
   revalidateTag(BANNERS_CACHE_TAG);
+}
+
+interface AdminPromoCode {
+  id: string;
+  code: string;
+  discount_type: "PERCENT" | "FIXED";
+  discount_value: number;
+  min_subtotal: number;
+  max_redemptions: number | null;
+  redemption_count: number;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+}
+
+export async function fetchPromoCodes(): Promise<AdminPromoCode[]> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { data, error } = await supabase
+    .from("promo_codes")
+    .select(
+      "id,code,discount_type,discount_value,min_subtotal,max_redemptions,redemption_count,starts_at,expires_at,is_active"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch promo codes: ${error.message}`);
+  }
+
+  return (data ?? []) as AdminPromoCode[];
+}
+
+interface CreatePromoCodeInput {
+  code: string;
+  discount_type: "PERCENT" | "FIXED";
+  discount_value: number;
+  min_subtotal?: number;
+  max_redemptions?: number;
+  starts_at?: string;
+  expires_at?: string;
+}
+
+export async function createPromoCode(data: CreatePromoCodeInput): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = promoCodeSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide valid promo code details.");
+  }
+
+  const { error } = await supabase.from("promo_codes").insert({
+    // citext makes matching case-insensitive regardless of stored casing
+    // - uppercasing here is purely a consistent-looking admin list, not
+    // a functional requirement.
+    code: parsed.data.code.toUpperCase(),
+    discount_type: parsed.data.discount_type,
+    discount_value: parsed.data.discount_value,
+    min_subtotal: parsed.data.min_subtotal ?? 0,
+    max_redemptions: parsed.data.max_redemptions ?? null,
+    starts_at: parsed.data.starts_at || null,
+    expires_at: parsed.data.expires_at || null,
+    is_active: true,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("That promo code already exists.");
+    }
+    throw new Error(`Failed to create promo code: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+export async function togglePromoCodeActive(promoCodeId: string, isActive: boolean): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase
+    .from("promo_codes")
+    .update({ is_active: isActive })
+    .eq("id", promoCodeId);
+
+  if (error) {
+    throw new Error(`Failed to update promo code: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+}
+
+export async function deletePromoCode(promoCodeId: string): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase.from("promo_codes").delete().eq("id", promoCodeId);
+
+  if (error) {
+    throw new Error(`Failed to delete promo code: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
 }

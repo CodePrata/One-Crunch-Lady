@@ -67,3 +67,49 @@ function centsToAmount(cents: number): number {
 function formatPercent(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
+
+export interface PromoDiscountResult {
+  /** The cart total after the promo discount. */
+  total: number;
+  /** How much the promo code took off - subtotal minus total. */
+  discountAmount: number;
+}
+
+/**
+ * Applies a promo-code discount to a cart subtotal - deliberately kept
+ * separate from getEffectivePrice above rather than sharing its
+ * internals, so adding promo codes can never risk changing the
+ * already-verified per-product discount behavior (lib/pricing.test.ts).
+ * Some duplication of the same cents-based approach is the trade-off.
+ *
+ * Both the live cart preview (app/actions/promo.ts's validatePromoCode)
+ * and the server-side order re-pricing (app/actions/orders.ts's
+ * createOrder, the actual source of truth) call this - same rule as
+ * getEffectivePrice: one place computes the number, so display and
+ * checkout can't diverge.
+ */
+export function applyPromoDiscount(
+  subtotal: number,
+  discountType: DiscountType,
+  discountValue: number
+): PromoDiscountResult {
+  const subtotalCents = Math.round(subtotal * 100);
+
+  const rawDiscountCents =
+    discountType === "PERCENT"
+      ? Math.round(subtotalCents * (discountValue / 100))
+      : Math.round(discountValue * 100);
+
+  // Clamped both ways: never below 0 (a malformed discount_value) and
+  // never above the subtotal itself (a FIXED code larger than the cart -
+  // unlike a per-product FIXED discount, there's no DB constraint tying
+  // a promo code's value to any one order's subtotal, since the same
+  // code is reused across orders of different sizes).
+  const discountCents = Math.min(subtotalCents, Math.max(0, rawDiscountCents));
+  const totalCents = subtotalCents - discountCents;
+
+  return {
+    total: centsToAmount(totalCents),
+    discountAmount: centsToAmount(discountCents),
+  };
+}

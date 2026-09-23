@@ -14,6 +14,10 @@ interface OwnerAlertEmailProps {
   customerPhone: string;
   items: OrderItem[];
   totalPrice: number;
+  /** Pre-discount total and the code that produced discountAmount - both omitted (undefined) when no promo code was applied. */
+  subtotal?: number;
+  discountAmount?: number;
+  promoCode?: string | null;
   adminDashboardUrl: string;
   whatsappNumber: string;
 }
@@ -25,9 +29,14 @@ export default function OwnerAlertEmail({
   customerPhone,
   items,
   totalPrice,
+  subtotal,
+  discountAmount,
+  promoCode,
   adminDashboardUrl,
   whatsappNumber,
 }: OwnerAlertEmailProps) {
+  const hasDiscount = Boolean(promoCode && discountAmount && discountAmount > 0);
+
   return (
     <BaseLayout
       previewText={`New order alert #${orderRef}`}
@@ -58,6 +67,14 @@ export default function OwnerAlertEmail({
       </Section>
 
       <Hr />
+      {hasDiscount ? (
+        <>
+          <Text>Subtotal: ${(subtotal ?? totalPrice).toFixed(2)}</Text>
+          <Text>
+            Discount ({promoCode}): -${(discountAmount ?? 0).toFixed(2)}
+          </Text>
+        </>
+      ) : null}
       <Text style={{ fontWeight: "700" }}>
         Total Amount Payable: ${totalPrice.toFixed(2)}
       </Text>

@@ -6,6 +6,7 @@ import { emailFrom, ownerEmail, paynowNumber, resendApiKey } from "@/config/serv
 import OrderReceivedEmail from "@/emails/OrderReceivedEmail";
 import OwnerAlertEmail from "@/emails/OwnerAlertEmail";
 import { getEffectivePrice } from "@/lib/pricing";
+import { checkPromoCode } from "@/lib/promo";
 import { createClient } from "@/lib/supabase/server";
 import { orderSchema, type OrderFormValues } from "@/lib/validations/order";
 import { render } from "@react-email/render";
@@ -173,10 +174,52 @@ export async function createOrder(
     };
   }
 
-  const totalPrice = orderItems.reduce(
-    (total, item) => total + item.unitPrice * item.quantity,
-    0
-  );
+  const subtotal = orderItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+
+  // Promo code: re-validated completely independently of whatever the
+  // client claimed (checkPromoCode is the same helper the live cart
+  // preview uses - see lib/promo.ts's doc comment for why that matters),
+  // and the redemption slot is claimed atomically only once we're
+  // actually about to insert this order, not back when the cart first
+  // showed the discount.
+  let totalPrice = subtotal;
+  let discountAmount = 0;
+  let appliedPromoCode: string | null = null;
+
+  if (values.promoCode) {
+    const promoCheck = await checkPromoCode(supabase, values.promoCode, subtotal);
+
+    if (!promoCheck.valid || !promoCheck.promo) {
+      return {
+        success: false,
+        error: promoCheck.error ?? "That promo code isn't valid.",
+      };
+    }
+
+    // claim_promo_redemption returns a single public.promo_codes row (not
+    // SETOF) - PostgREST hands that back as one object or null directly,
+    // so no .single()/.maybeSingle() modifier is needed or appropriate
+    // here the way it is for a table .select().
+    const { data: claimedPromo, error: claimError } = await supabase.rpc(
+      "claim_promo_redemption",
+      { promo_id: promoCheck.promo.id }
+    );
+
+    if (claimError || !claimedPromo) {
+      // Someone else claimed the last slot (or it expired/deactivated)
+      // between the check above and this claim - a real race, not a
+      // hypothetical one, hence the atomic RPC rather than a JS
+      // read-then-write.
+      return {
+        success: false,
+        error: "That promo code just stopped being valid. Please remove it and try again.",
+      };
+    }
+
+    totalPrice = promoCheck.total ?? subtotal;
+    discountAmount = promoCheck.discountAmount ?? 0;
+    appliedPromoCode = promoCheck.promo.code;
+  }
 
   const { data: insertedOrder, error: insertError } = await supabase
     .from("orders")
@@ -185,6 +228,9 @@ export async function createOrder(
       customer_email: values.customerEmail,
       customer_phone: values.customerPhone,
       order_items: orderItems,
+      subtotal,
+      promo_code: appliedPromoCode,
+      discount_amount: discountAmount,
       total_price: totalPrice,
       idempotency_token: values.idempotencyToken,
     })
@@ -217,6 +263,9 @@ export async function createOrder(
         orderRef: insertedOrder.order_ref,
         items: orderItems,
         totalPrice,
+        subtotal,
+        discountAmount,
+        promoCode: appliedPromoCode,
         paynowNumber,
         whatsappNumber,
       })
@@ -230,6 +279,9 @@ export async function createOrder(
         customerPhone: values.customerPhone,
         items: orderItems,
         totalPrice: Number(insertedOrder.total_price),
+        subtotal,
+        discountAmount,
+        promoCode: appliedPromoCode,
         adminDashboardUrl: `${siteUrl}/admin/orders`,
         whatsappNumber,
       })

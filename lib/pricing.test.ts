@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { getEffectivePrice } from "./pricing";
+import { applyPromoDiscount, getEffectivePrice } from "./pricing";
 
 test.describe("getEffectivePrice", () => {
   test("returns the plain price unchanged when there is no discount", () => {
@@ -49,5 +49,42 @@ test.describe("getEffectivePrice", () => {
   test("a 100% percentage discount reduces the price to zero", () => {
     const result = getEffectivePrice({ price: 8.5, discountType: "PERCENT", discountValue: 100 });
     expect(result.price).toBe(0);
+  });
+});
+
+test.describe("applyPromoDiscount", () => {
+  test("applies a percentage discount to a subtotal", () => {
+    const result = applyPromoDiscount(50, "PERCENT", 10);
+    expect(result.total).toBe(45);
+    expect(result.discountAmount).toBe(5);
+  });
+
+  test("applies a fixed discount to a subtotal", () => {
+    const result = applyPromoDiscount(20, "FIXED", 5);
+    expect(result.total).toBe(15);
+    expect(result.discountAmount).toBe(5);
+  });
+
+  test("computes in cents to avoid float drift", () => {
+    const result = applyPromoDiscount(17.7, "PERCENT", 10);
+    expect(result.total).toBe(15.93);
+    expect(result.discountAmount).toBe(1.77);
+  });
+
+  test("clamps a fixed discount larger than the subtotal to zero, never negative", () => {
+    // Unlike a per-product FIXED discount (DB-constrained to always be
+    // less than that product's price), a promo code's fixed value has no
+    // such tie to any one order - the same code is reused across orders
+    // of different sizes, so a $20-off code applied to a $12 cart is a
+    // real case the math has to handle, not just a defensive edge case.
+    const result = applyPromoDiscount(12, "FIXED", 20);
+    expect(result.total).toBe(0);
+    expect(result.discountAmount).toBe(12);
+  });
+
+  test("a 100% percentage discount reduces the total to zero", () => {
+    const result = applyPromoDiscount(33.33, "PERCENT", 100);
+    expect(result.total).toBe(0);
+    expect(result.discountAmount).toBe(33.33);
   });
 });

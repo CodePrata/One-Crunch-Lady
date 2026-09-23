@@ -21,6 +21,12 @@ export const orderSchema = z.object({
     message: "You must acknowledge PayNow payment confirmation before submitting.",
   }),
   idempotencyToken: z.string().uuid(),
+  // Optional - not validated for shape here beyond a length cap; the
+  // code itself (active, within its date window, under its redemption
+  // cap, subtotal met) is only ever verified server-side in createOrder
+  // via app/actions/promo.ts's checkPromoCode, the same way prices are
+  // never trusted from the client.
+  promoCode: z.string().trim().max(32).optional(),
 });
 
 export type OrderFormValues = z.infer<typeof orderSchema>;

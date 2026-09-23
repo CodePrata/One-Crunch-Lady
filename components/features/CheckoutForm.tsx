@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { createOrder } from "@/app/actions/orders";
+import { validatePromoCode } from "@/app/actions/promo";
 import { useCartCatalogItems } from "@/components/features/CartCatalogProvider";
 import { whatsappNumber } from "@/config/site";
 import { useCartStore } from "@/lib/store/cart";
@@ -49,6 +50,22 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
   const [idempotencyToken, setIdempotencyToken] = useState<string>(() => crypto.randomUUID());
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountLabel: string;
+    discountAmount: number;
+    total: number;
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  // Client-side only, deliberately not a cookie - see app/actions/promo.ts's
+  // doc comment for why validatePromoCode itself can't rate-limit via a
+  // cookie without wiping this form's still-typed fields. A ref (not
+  // state) since bumping it should never itself cause a re-render.
+  const lastPromoCheckAtRef = useRef(0);
+  const PROMO_CHECK_COOLDOWN_MS = 3_000;
+
   const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
 
   const {
@@ -67,6 +84,45 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
   });
 
   const canCheckOut = lines.length > 0 && unavailableLines.length === 0;
+
+  async function handleApplyPromo() {
+    setPromoError(null);
+    const trimmedCode = promoCodeInput.trim();
+
+    if (!trimmedCode) {
+      setPromoError("Please enter a promo code.");
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastPromoCheckAtRef.current < PROMO_CHECK_COOLDOWN_MS) {
+      setPromoError("Please wait a moment before trying another code.");
+      return;
+    }
+    lastPromoCheckAtRef.current = now;
+
+    setIsValidatingPromo(true);
+    const result = await validatePromoCode(trimmedCode, subtotal);
+    setIsValidatingPromo(false);
+
+    if (!result.valid || result.discountAmount === undefined || result.total === undefined) {
+      setPromoError(result.error ?? "That promo code isn't valid.");
+      return;
+    }
+
+    setAppliedPromo({
+      code: trimmedCode,
+      discountLabel: result.discountLabel ?? "",
+      discountAmount: result.discountAmount,
+      total: result.total,
+    });
+  }
+
+  function handleRemovePromo() {
+    setAppliedPromo(null);
+    setPromoCodeInput("");
+    setPromoError(null);
+  }
 
   const onSubmit = handleSubmit(async (contactValues) => {
     setSubmissionError(null);
@@ -88,6 +144,11 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
       ...contactValues,
       quantities,
       idempotencyToken,
+      // Only an already-Applied code, never whatever's sitting unvalidated
+      // in promoCodeInput. createOrder re-validates this independently
+      // regardless (see lib/promo.ts) - appliedPromo is a preview, not a
+      // trusted discount.
+      promoCode: appliedPromo?.code,
     };
 
     const result = await createOrder(payload);
@@ -104,6 +165,8 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
     // Fresh token for whatever the customer orders next this session -
     // reusing a spent one would just replay the same orderRef.
     setIdempotencyToken(crypto.randomUUID());
+    setAppliedPromo(null);
+    setPromoCodeInput("");
     onSuccess({ orderRef: result.orderRef, accessToken: result.accessToken });
   });
 
@@ -246,11 +309,77 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
 
       {lines.length > 0 ? (
         <div className="space-y-3 border-t-2 border-cookie-brown p-5">
+          <div>
+            <label
+              htmlFor={`${formId}-promo`}
+              className="mb-1 block text-sm font-semibold text-cookie-brown-dark"
+            >
+              Promo Code
+            </label>
+            {appliedPromo ? (
+              <div className="flex items-center justify-between gap-2 rounded-md border-2 border-cookie-brown bg-hero-yellow/20 px-3 py-2">
+                <p className="text-sm font-semibold text-cookie-brown-dark">
+                  {appliedPromo.code} applied - {appliedPromo.discountLabel}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRemovePromo}
+                  className="tap-target shrink-0 text-sm font-semibold text-cookie-brown-dark underline underline-offset-2 transition hover:text-power-red"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  id={`${formId}-promo`}
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(event) => setPromoCodeInput(event.target.value)}
+                  placeholder="Enter code"
+                  aria-label="Promo code"
+                  className="tap-target flex-1 rounded-md border-2 border-cookie-brown px-3 text-cookie-brown-dark"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromo}
+                  disabled={isValidatingPromo}
+                  className="tap-target shrink-0 rounded-md border-2 border-cookie-brown bg-flour-white px-4 text-sm font-semibold text-cookie-brown-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isValidatingPromo ? "Checking..." : "Apply"}
+                </button>
+              </div>
+            )}
+            {promoError ? (
+              <p className="mt-1 text-sm font-semibold text-power-red">{promoError}</p>
+            ) : null}
+          </div>
+
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
               Subtotal ({itemCount} item{itemCount === 1 ? "" : "s"})
             </p>
-            <p className="font-display text-3xl text-cookie-brown-dark">${subtotal.toFixed(2)}</p>
+            <p className="text-base font-semibold text-cookie-brown-dark">${subtotal.toFixed(2)}</p>
+          </div>
+
+          {appliedPromo ? (
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-cookie-brown-dark">
+                Discount ({appliedPromo.code})
+              </p>
+              <p className="text-base font-semibold text-power-red">
+                -${appliedPromo.discountAmount.toFixed(2)}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold uppercase tracking-wide text-cookie-brown-dark">
+              Total
+            </p>
+            <p className="font-display text-3xl text-cookie-brown-dark">
+              ${(appliedPromo ? appliedPromo.total : subtotal).toFixed(2)}
+            </p>
           </div>
 
           {unavailableLines.length > 0 ? (

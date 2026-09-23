@@ -69,13 +69,6 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
 
   const { email, message } = parsed.data;
 
-  cookieStore.set(SUBMISSION_COOKIE, String(now), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60,
-  });
-
   try {
     const resend = new Resend(resendApiKey);
     const html = await render(
@@ -97,6 +90,23 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
         "We could not send your message right now. Please try again, or reach us directly on WhatsApp.",
     };
   }
+
+  // Written only on confirmed success, not preemptively before the send
+  // attempt: cookies().set() inside a Server Action makes Next.js
+  // auto-refresh the calling route afterward, which can reset a still-
+  // mounted Client Component's state (see app/actions/promo.ts's doc
+  // comment for the confirmed case of this on /cart). Writing it here
+  // means a failed send - where the form is still visible and the
+  // customer needs their typed message intact to retry - never triggers
+  // that refresh. It's also more correct: a message that failed to send
+  // never reached the owner's inbox, so it shouldn't count against the
+  // cooldown either.
+  cookieStore.set(SUBMISSION_COOKIE, String(now), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60,
+  });
 
   return { success: true };
 }

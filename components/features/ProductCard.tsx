@@ -1,6 +1,7 @@
 import Image from "next/image";
 import AddToCartButton from "@/components/features/AddToCartButton";
 import ProductDetail from "@/components/features/ProductDetail";
+import { getEffectivePrice } from "@/lib/pricing";
 
 interface ProductCardProps {
   id: string;
@@ -11,6 +12,8 @@ interface ProductCardProps {
   category: string | null;
   ingredients: string[];
   isAvailable: boolean;
+  discountType?: "PERCENT" | "FIXED" | null;
+  discountValue?: number | null;
   priority?: boolean;
 }
 
@@ -58,9 +61,12 @@ export default function ProductCard({
   category,
   ingredients,
   isAvailable,
+  discountType = null,
+  discountValue = null,
   priority = false,
 }: ProductCardProps) {
   const shortDescription = description.length > 95 ? `${description.slice(0, 92)}...` : description;
+  const effectivePrice = getEffectivePrice({ price, discountType, discountValue });
 
   return (
     <article className="relative flex h-full flex-col rounded-xl border-[3px] border-cookie-brown bg-flour-white p-4">
@@ -73,6 +79,11 @@ export default function ProductCard({
       ) : null}
 
       <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
+        {effectivePrice.discountLabel ? (
+          <span className="absolute left-2 top-2 z-10 rounded-md bg-power-red px-2 py-1 text-xs font-bold uppercase text-flour-white">
+            {effectivePrice.discountLabel}
+          </span>
+        ) : null}
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -101,9 +112,26 @@ export default function ProductCard({
 
       <div className="mt-1 flex items-start justify-between gap-3">
         <h3 className="font-display text-3xl uppercase leading-none text-cookie-brown-dark">{name}</h3>
-        <p className="shrink-0 pt-0.5 text-lg font-extrabold text-cookie-brown-dark">
-          ${price.toFixed(2)}
-        </p>
+        {effectivePrice.originalPrice !== null ? (
+          <p
+            className="shrink-0 pt-0.5 text-right"
+            aria-label={`Now $${effectivePrice.price.toFixed(2)}, was $${effectivePrice.originalPrice.toFixed(2)}`}
+          >
+            <span
+              className="block text-xs font-semibold text-cookie-brown-dark line-through"
+              aria-hidden="true"
+            >
+              ${effectivePrice.originalPrice.toFixed(2)}
+            </span>
+            <span className="text-lg font-extrabold text-power-red" aria-hidden="true">
+              ${effectivePrice.price.toFixed(2)}
+            </span>
+          </p>
+        ) : (
+          <p className="shrink-0 pt-0.5 text-lg font-extrabold text-cookie-brown-dark">
+            ${effectivePrice.price.toFixed(2)}
+          </p>
+        )}
       </div>
 
       <p className="mt-2 flex-1 text-sm leading-relaxed text-cookie-brown-dark">{shortDescription}</p>
@@ -117,6 +145,8 @@ export default function ProductCard({
           imageUrl={imageUrl}
           ingredients={ingredients}
           isAvailable={isAvailable}
+          discountType={discountType}
+          discountValue={discountValue}
         />
         <AddToCartButton productId={id} productName={name} isAvailable={isAvailable} />
       </div>

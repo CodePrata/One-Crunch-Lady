@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import AddToCartButton from "@/components/features/AddToCartButton";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { getEffectivePrice } from "@/lib/pricing";
 
 interface ProductDetailProps {
   id: string;
@@ -14,6 +15,8 @@ interface ProductDetailProps {
   imageUrl: string | null;
   ingredients: string[];
   isAvailable: boolean;
+  discountType?: "PERCENT" | "FIXED" | null;
+  discountValue?: number | null;
 }
 
 function ProductPlaceholder({ name }: { name: string }) {
@@ -59,6 +62,8 @@ export default function ProductDetail({
   imageUrl,
   ingredients,
   isAvailable,
+  discountType = null,
+  discountValue = null,
 }: ProductDetailProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -86,7 +91,7 @@ export default function ProductDetail({
     };
   }, [isOpen]);
 
-  const formattedPrice = `$${price.toFixed(2)}`;
+  const effectivePrice = getEffectivePrice({ price, discountType, discountValue });
 
   return (
     <>
@@ -123,9 +128,26 @@ export default function ProductDetail({
                 >
                   {name}
                 </h2>
-                <p className="shrink-0 pt-1 text-lg font-bold text-cookie-brown-dark">
-                  {formattedPrice}
-                </p>
+                {effectivePrice.originalPrice !== null ? (
+                  <p
+                    className="shrink-0 pt-1"
+                    aria-label={`Now $${effectivePrice.price.toFixed(2)}, was $${effectivePrice.originalPrice.toFixed(2)}`}
+                  >
+                    <span
+                      className="block text-sm font-semibold text-cookie-brown-dark line-through"
+                      aria-hidden="true"
+                    >
+                      ${effectivePrice.originalPrice.toFixed(2)}
+                    </span>
+                    <span className="text-lg font-bold text-power-red" aria-hidden="true">
+                      ${effectivePrice.price.toFixed(2)}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="shrink-0 pt-1 text-lg font-bold text-cookie-brown-dark">
+                    ${effectivePrice.price.toFixed(2)}
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -139,6 +161,11 @@ export default function ProductDetail({
 
             <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-5 tablet:px-6 tablet:pb-6">
               <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl border-2 border-cookie-brown bg-flour-white">
+                {effectivePrice.discountLabel ? (
+                  <span className="absolute left-2 top-2 z-10 rounded-md bg-power-red px-2 py-1 text-xs font-bold uppercase text-flour-white">
+                    {effectivePrice.discountLabel}
+                  </span>
+                ) : null}
                 {imageUrl ? (
                   <Image
                     src={imageUrl}

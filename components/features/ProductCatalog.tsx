@@ -12,6 +12,8 @@ export interface CatalogDisplayProduct {
   category: string | null;
   ingredients: string[];
   isAvailable: boolean;
+  discountType?: "PERCENT" | "FIXED" | null;
+  discountValue?: number | null;
 }
 
 const ALL_FILTER = "All";
@@ -101,6 +103,8 @@ export default function ProductCatalog({ products }: { products: CatalogDisplayP
               category={product.category}
               ingredients={product.ingredients}
               isAvailable={product.isAvailable}
+              discountType={product.discountType}
+              discountValue={product.discountValue}
               priority={index === 0}
             />
           ))}

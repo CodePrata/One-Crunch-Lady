@@ -86,6 +86,8 @@ export default async function Home() {
                   category={product.category}
                   ingredients={product.ingredients}
                   isAvailable={product.isAvailable}
+                  discountType={product.discountType}
+                  discountValue={product.discountValue}
                   priority={index === 0}
                 />
               ))}

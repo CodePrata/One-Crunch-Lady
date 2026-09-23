@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { emailFrom, ownerEmail, paynowNumber, resendApiKey } from "@/config/server";
 import OrderReceivedEmail from "@/emails/OrderReceivedEmail";
 import OwnerAlertEmail from "@/emails/OwnerAlertEmail";
+import { getEffectivePrice } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/server";
 import { orderSchema, type OrderFormValues } from "@/lib/validations/order";
 import { render } from "@react-email/render";
@@ -92,7 +93,7 @@ export async function createOrder(
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id,name,price,is_available")
+    .select("id,name,price,is_available,discount_type,discount_value")
     .in("id", selectedIds)
     .eq("is_available", true);
 
@@ -107,11 +108,20 @@ export async function createOrder(
   const orderItems = products
     .map((product) => {
       const quantity = quantityMap.get(product.id) ?? 0;
+      // getEffectivePrice is also what ProductCard/ProductDetail/
+      // CartLineItems use to display a price - this is the one place a
+      // discount is ever applied, so what the customer saw and what they
+      // are charged cannot diverge.
+      const { price } = getEffectivePrice({
+        price: Number(product.price),
+        discountType: product.discount_type,
+        discountValue: product.discount_value !== null ? Number(product.discount_value) : null,
+      });
       return {
         productId: product.id,
         productName: product.name,
         quantity,
-        unitPrice: Number(product.price),
+        unitPrice: price,
       };
     })
     .filter((item) => item.quantity > 0);

@@ -54,7 +54,15 @@ export default function CartLineItems() {
                 ${line.lineTotal.toFixed(2)}
               </p>
             </div>
-            <p className="text-xs text-cookie-brown-dark">${line.product.price.toFixed(2)} each</p>
+            {line.originalUnitPrice !== null ? (
+              <p className="text-xs text-cookie-brown-dark">
+                <span className="line-through">${line.originalUnitPrice.toFixed(2)}</span>{" "}
+                <span className="font-semibold text-power-red">${line.unitPrice.toFixed(2)}</span>{" "}
+                each
+              </p>
+            ) : (
+              <p className="text-xs text-cookie-brown-dark">${line.unitPrice.toFixed(2)} each</p>
+            )}
 
             <div className="mt-1 flex items-center gap-2">
               <button

@@ -12,6 +12,8 @@ export interface CatalogProduct {
   category: string | null;
   ingredients: string[];
   isAvailable: boolean;
+  discountType: "PERCENT" | "FIXED" | null;
+  discountValue: number | null;
 }
 
 interface ProductRow {
@@ -24,6 +26,8 @@ interface ProductRow {
   category: string | null;
   ingredients: string | null;
   is_available: boolean;
+  discount_type: "PERCENT" | "FIXED" | null;
+  discount_value: number | null;
 }
 
 function parseIngredients(ingredients: string | null): string[] {
@@ -44,7 +48,9 @@ async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,slug,description,price,image_url,category,ingredients,is_available,created_at")
+    .select(
+      "id,name,slug,description,price,image_url,category,ingredients,is_available,discount_type,discount_value,created_at"
+    )
     .eq("is_available", true)
     .order("created_at", { ascending: false });
 
@@ -66,6 +72,8 @@ async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
     category: product.category,
     ingredients: parseIngredients(product.ingredients),
     isAvailable: product.is_available,
+    discountType: product.discount_type,
+    discountValue: product.discount_value,
   }));
 }
 

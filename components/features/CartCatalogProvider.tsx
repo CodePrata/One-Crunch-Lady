@@ -1,19 +1,33 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo } from "react";
+import { getEffectivePrice } from "@/lib/pricing";
 import { useCartHasHydrated, useCartStore } from "@/lib/store/cart";
 
 export interface CartCatalogProduct {
   id: string;
   name: string;
+  /** Original (pre-discount) price - see CartCatalogLine.unitPrice for what the customer is actually charged. */
   price: number;
   imageUrl: string | null;
   isAvailable: boolean;
+  discountType: "PERCENT" | "FIXED" | null;
+  discountValue: number | null;
 }
 
 export interface CartCatalogLine {
   product: CartCatalogProduct;
   quantity: number;
+  /**
+   * Effective (possibly discounted) unit price - what lineTotal is
+   * computed from and what the customer is actually charged. Computed
+   * via lib/pricing.ts, the same helper app/actions/orders.ts uses to
+   * re-price server-side, so this can never show a different number than
+   * what checkout ends up charging.
+   */
+  unitPrice: number;
+  originalUnitPrice: number | null;
+  discountLabel: string | null;
   lineTotal: number;
 }
 
@@ -81,10 +95,19 @@ export function useCartCatalogItems(): {
         continue;
       }
 
+      const effective = getEffectivePrice({
+        price: product.price,
+        discountType: product.discountType,
+        discountValue: product.discountValue,
+      });
+
       const line: CartCatalogLine = {
         product,
         quantity: item.quantity,
-        lineTotal: product.price * item.quantity,
+        unitPrice: effective.price,
+        originalUnitPrice: effective.originalPrice,
+        discountLabel: effective.discountLabel,
+        lineTotal: effective.price * item.quantity,
       };
 
       if (product.isAvailable) {

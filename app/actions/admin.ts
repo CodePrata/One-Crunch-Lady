@@ -1,14 +1,16 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { Resend } from "resend";
 import { emailFrom, resendApiKey } from "@/config/server";
 import { pickupHours } from "@/config/site";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
+import { BANNERS_CACHE_TAG } from "@/lib/banners";
+import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
-import { productSchema } from "@/lib/validations/product";
+import { bannerSchema } from "@/lib/validations/banner";
+import { productDiscountSchema, productSchema } from "@/lib/validations/product";
 
 type AdminOrderStatus = "PAID" | "READY";
 
@@ -34,6 +36,18 @@ interface AdminProduct {
   ingredients: string | null;
   category?: string | null;
   is_available: boolean;
+  discount_type: "PERCENT" | "FIXED" | null;
+  discount_value: number | null;
+}
+
+interface AdminBanner {
+  id: string;
+  image_url: string;
+  alt_text: string;
+  sort_order: number;
+  is_active: boolean;
+  image_width: number | null;
+  image_height: number | null;
 }
 
 interface CreateProductInput {
@@ -94,7 +108,9 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,description,price,image_url,category,ingredients,is_available")
+    .select(
+      "id,name,description,price,image_url,category,ingredients,is_available,discount_type,discount_value"
+    )
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -292,4 +308,164 @@ export async function updateProduct(
   revalidatePath("/admin/orders");
   revalidateTag(PRODUCTS_CACHE_TAG);
   revalidatePath("/");
+}
+
+interface SetProductDiscountInput {
+  discount_type: "PERCENT" | "FIXED";
+  discount_value: number;
+}
+
+/**
+ * `price` is never touched here - it stays the original, pre-discount
+ * price (see the doc comment on 012_add_product_discounts.sql and
+ * lib/pricing.ts). Setting a discount only ever writes discount_type/
+ * discount_value.
+ */
+export async function setProductDiscount(
+  productId: string,
+  data: SetProductDiscountInput
+): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = productDiscountSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide a valid discount.");
+  }
+
+  // A FIXED discount >= price is rejected by the DB check constraint
+  // regardless, but checking here first gives a clear error instead of a
+  // raw Postgres constraint-violation message reaching the admin UI.
+  if (parsed.data.discount_type === "FIXED") {
+    const { data: product, error: fetchError } = await supabase
+      .from("products")
+      .select("price")
+      .eq("id", productId)
+      .single();
+
+    if (fetchError || !product) {
+      throw new Error("Product not found.");
+    }
+    if (parsed.data.discount_value >= product.price) {
+      throw new Error("A fixed discount must be less than the product's price.");
+    }
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      discount_type: parsed.data.discount_type,
+      discount_value: parsed.data.discount_value,
+    })
+    .eq("id", productId);
+
+  if (error) {
+    throw new Error(`Failed to set discount: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/");
+  revalidateTag(PRODUCTS_CACHE_TAG);
+}
+
+export async function clearProductDiscount(productId: string): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase
+    .from("products")
+    .update({ discount_type: null, discount_value: null })
+    .eq("id", productId);
+
+  if (error) {
+    throw new Error(`Failed to clear discount: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/");
+  revalidateTag(PRODUCTS_CACHE_TAG);
+}
+
+export async function fetchBanners(): Promise<AdminBanner[]> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { data, error } = await supabase
+    .from("promotion_banners")
+    .select("id,image_url,alt_text,sort_order,is_active,image_width,image_height")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch banners: ${error.message}`);
+  }
+
+  return (data ?? []) as AdminBanner[];
+}
+
+interface CreateBannerInput {
+  image_url: string;
+  alt_text: string;
+  sort_order?: number;
+  image_width?: number;
+  image_height?: number;
+}
+
+export async function createBanner(data: CreateBannerInput): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = bannerSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide valid banner details.");
+  }
+
+  const { error } = await supabase.from("promotion_banners").insert({
+    image_url: parsed.data.image_url,
+    alt_text: parsed.data.alt_text,
+    sort_order: parsed.data.sort_order ?? 0,
+    image_width: parsed.data.image_width ?? null,
+    image_height: parsed.data.image_height ?? null,
+    is_active: true,
+  });
+
+  if (error) {
+    throw new Error(`Failed to create banner: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/promotion");
+  revalidateTag(BANNERS_CACHE_TAG);
+}
+
+export async function toggleBannerActive(bannerId: string, isActive: boolean): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase
+    .from("promotion_banners")
+    .update({ is_active: isActive })
+    .eq("id", bannerId);
+
+  if (error) {
+    throw new Error(`Failed to update banner: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/promotion");
+  revalidateTag(BANNERS_CACHE_TAG);
+}
+
+export async function deleteBanner(bannerId: string): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase.from("promotion_banners").delete().eq("id", bannerId);
+
+  if (error) {
+    throw new Error(`Failed to delete banner: ${error.message}`);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/promotion");
+  revalidateTag(BANNERS_CACHE_TAG);
 }

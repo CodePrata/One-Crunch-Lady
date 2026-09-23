@@ -28,12 +28,12 @@ export default async function Home() {
                 Fresh-baked cookies with manga-level impact: crunchy edges, soft centers, and
                 unforgettable flavor.
               </p>
-              <a
+              <Link
                 href="/products"
                 className="tap-target mt-6 inline-flex items-center justify-center rounded-md border-[3px] border-cookie-brown bg-power-red px-6 text-base font-semibold text-flour-white"
               >
                 View Products
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
+import { emailLogoUrl } from "@/config/site";
 
 interface BaseLayoutProps {
   previewText: string;
@@ -29,7 +30,6 @@ export default function BaseLayout({
     ? `?text=${encodeURIComponent(whatsappMessage)}`
     : "";
   const whatsappHref = `https://wa.me/${safeWhatsappNumber}${encodedMessage}`;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   return (
     <Html>
@@ -38,11 +38,7 @@ export default function BaseLayout({
       <Body style={bodyStyle}>
         <Container style={containerStyle}>
           <Section style={headerStyle}>
-            <Img
-              src={`${siteUrl}/ocl_logo-nobg.png`}
-              alt="One Crunch Lady logo"
-              width="120"
-            />
+            <Img src={emailLogoUrl} alt="One Crunch Lady logo" width="120" />
           </Section>
 
           <Section style={contentStyle}>{children}</Section>

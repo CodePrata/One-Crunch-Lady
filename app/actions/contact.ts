@@ -71,9 +71,13 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
 
   try {
     const resend = new Resend(resendApiKey);
-    const html = await render(
-      ContactMessageEmail({ customerEmail: email, message, whatsappNumber })
-    );
+    const emailElement = ContactMessageEmail({ customerEmail: email, message, whatsappNumber });
+    // Both rendered from the same element - an HTML-only send (no text
+    // alternative) costs spam-score points on its own.
+    const [html, text] = await Promise.all([
+      render(emailElement),
+      render(emailElement, { plainText: true }),
+    ]);
 
     await resend.emails.send({
       from: emailFrom,
@@ -81,6 +85,7 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
       replyTo: email,
       subject: "New Contact Message - One Crunch Lady",
       html,
+      text,
     });
   } catch (error) {
     console.error("Failed to send contact message email", error);

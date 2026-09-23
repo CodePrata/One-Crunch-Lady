@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { dpoEmail, dpoName } from "@/config/site";
+import { dpoEmail } from "@/config/server";
+import { dpoName } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",

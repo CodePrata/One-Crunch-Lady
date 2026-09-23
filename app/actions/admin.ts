@@ -1,8 +1,9 @@
 "use server";
 
+import { render } from "@react-email/render";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { Resend } from "resend";
-import { emailFrom, resendApiKey } from "@/config/server";
+import { emailFrom, ownerEmail, resendApiKey } from "@/config/server";
 import { pickupHours } from "@/config/site";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
@@ -143,27 +144,40 @@ export async function updateOrderStatus(
     const resend = new Resend(resendApiKey);
     const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
 
+    const emailElement =
+      status === "PAID"
+        ? PaymentConfirmedEmail({
+            orderRef: updatedOrder.order_ref,
+            customerName: updatedOrder.customer_name ?? "Customer",
+            whatsappNumber,
+          })
+        : ReadyForPickupEmail({
+            orderRef: updatedOrder.order_ref,
+            customerName: updatedOrder.customer_name ?? "Customer",
+            pickupHours,
+            whatsappNumber,
+          });
+
     try {
+      // A plain-text alternative alongside react: - an HTML/React-only
+      // send (no text part at all) costs spam-score points on its own,
+      // on top of being worse for any reader whose client prefers plain
+      // text. Rendered from the same element `react:` below will also
+      // render, so the two can't drift apart.
+      const text = await render(emailElement, { plainText: true });
+
       await resend.emails.send({
         from: emailFrom,
         to: updatedOrder.customer_email,
+        // So a customer hitting Reply reaches the owner, not an
+        // unmonitored orders@ sender address.
+        replyTo: ownerEmail,
         subject:
           status === "PAID"
             ? `Order #${updatedOrder.order_ref}: Payment Received, We're Baking!`
             : `Order #${updatedOrder.order_ref}: Ready for Pickup!`,
-        react:
-          status === "PAID"
-            ? PaymentConfirmedEmail({
-                orderRef: updatedOrder.order_ref,
-                customerName: updatedOrder.customer_name ?? "Customer",
-                whatsappNumber,
-              })
-            : ReadyForPickupEmail({
-                orderRef: updatedOrder.order_ref,
-                customerName: updatedOrder.customer_name ?? "Customer",
-                pickupHours,
-                whatsappNumber,
-              }),
+        react: emailElement,
+        text,
       });
     } catch (emailError) {
       console.error("Failed to send status update email", emailError);

@@ -33,6 +33,15 @@ const serverEnvSchema = z.object({
   EMAIL_FROM: z
     .string()
     .min(1, "EMAIL_FROM is required as the Resend sender address for all outgoing email."),
+  // PDPA requires a designated Data Protection Officer with published
+  // business contact info - WhatsApp alone does not satisfy that
+  // requirement. The PDPC does not require the DPO's personal name to be
+  // published, only a reachable contact (see dpoName in config/site.ts,
+  // a role label, not a person's name) - so only the email varies by
+  // deploy and needs to be an env var; the label doesn't.
+  DPO_EMAIL: z
+    .string()
+    .email("DPO_EMAIL must be a valid email address (the published PDPA contact)."),
 });
 
 const parsed = serverEnvSchema.safeParse({
@@ -40,6 +49,7 @@ const parsed = serverEnvSchema.safeParse({
   OWNER_EMAIL: process.env.OWNER_EMAIL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
+  DPO_EMAIL: process.env.DPO_EMAIL,
 });
 
 if (!parsed.success) {
@@ -51,3 +61,4 @@ export const paynowNumber = parsed.data.PAYNOW_NUMBER;
 export const ownerEmail = parsed.data.OWNER_EMAIL;
 export const resendApiKey = parsed.data.RESEND_API_KEY;
 export const emailFrom = parsed.data.EMAIL_FROM;
+export const dpoEmail = parsed.data.DPO_EMAIL;

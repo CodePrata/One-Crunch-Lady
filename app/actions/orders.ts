@@ -258,48 +258,62 @@ export async function createOrder(
   if (resendApiKey) {
     const resend = new Resend(resendApiKey);
 
-    const emailHtml = await render(
-      OrderReceivedEmail({
-        orderRef: insertedOrder.order_ref,
-        items: orderItems,
-        totalPrice,
-        subtotal,
-        discountAmount,
-        promoCode: appliedPromoCode,
-        paynowNumber,
-        whatsappNumber,
-      })
-    );
+    const orderReceivedElement = OrderReceivedEmail({
+      orderRef: insertedOrder.order_ref,
+      items: orderItems,
+      totalPrice,
+      subtotal,
+      discountAmount,
+      promoCode: appliedPromoCode,
+      paynowNumber,
+      whatsappNumber,
+    });
 
-    const ownerEmailHtml = await render(
-      OwnerAlertEmail({
-        orderRef: insertedOrder.order_ref,
-        customerName: insertedOrder.customer_name,
-        customerEmail: insertedOrder.customer_email,
-        customerPhone: values.customerPhone,
-        items: orderItems,
-        totalPrice: Number(insertedOrder.total_price),
-        subtotal,
-        discountAmount,
-        promoCode: appliedPromoCode,
-        adminDashboardUrl: `${siteUrl}/admin/orders`,
-        whatsappNumber,
-      })
-    );
+    const ownerAlertElement = OwnerAlertEmail({
+      orderRef: insertedOrder.order_ref,
+      customerName: insertedOrder.customer_name,
+      customerEmail: insertedOrder.customer_email,
+      customerPhone: values.customerPhone,
+      items: orderItems,
+      totalPrice: Number(insertedOrder.total_price),
+      subtotal,
+      discountAmount,
+      promoCode: appliedPromoCode,
+      adminDashboardUrl: `${siteUrl}/admin/orders`,
+      whatsappNumber,
+    });
+
+    // Both html and text (plainText: true) rendered from the same
+    // element for each template - an HTML-only send (no text
+    // alternative at all) is itself a spam-score signal, on top of
+    // being worse for any reader whose client prefers plain text.
+    const [emailHtml, emailText, ownerEmailHtml, ownerEmailText] = await Promise.all([
+      render(orderReceivedElement),
+      render(orderReceivedElement, { plainText: true }),
+      render(ownerAlertElement),
+      render(ownerAlertElement, { plainText: true }),
+    ]);
 
     try {
       await resend.emails.send({
         from: emailFrom,
         to: insertedOrder.customer_email,
+        // So a customer hitting Reply reaches the owner, not an
+        // unmonitored orders@ sender address.
+        replyTo: ownerEmail,
         subject: `Order #${insertedOrder.order_ref} Received!`,
         html: emailHtml,
+        text: emailText,
       });
 
       await resend.emails.send({
         from: emailFrom,
         to: ownerEmail,
+        // So the owner can just hit Reply to email the customer back.
+        replyTo: insertedOrder.customer_email,
         subject: `New Order: #${insertedOrder.order_ref}`,
         html: ownerEmailHtml,
+        text: ownerEmailText,
       });
     } catch (emailError) {
       if (process.env.NODE_ENV !== "production") {

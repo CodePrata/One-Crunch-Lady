@@ -8,9 +8,11 @@ import { pickupHours } from "@/config/site";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
 import { BANNERS_CACHE_TAG } from "@/lib/banners";
+import { FAQ_CACHE_TAG } from "@/lib/faq";
 import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
 import { bannerSchema } from "@/lib/validations/banner";
+import { faqItemSchema, faqReorderSchema } from "@/lib/validations/faq";
 import { productDiscountSchema, productSchema } from "@/lib/validations/product";
 import { promoCodeSchema } from "@/lib/validations/promo";
 
@@ -122,10 +124,7 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
   return (data ?? []) as AdminProduct[];
 }
 
-export async function updateOrderStatus(
-  orderId: number,
-  status: AdminOrderStatus
-): Promise<void> {
+export async function updateOrderStatus(orderId: number, status: AdminOrderStatus): Promise<void> {
   await assertAdminAccess();
   const supabase = supabaseAdmin();
 
@@ -204,7 +203,7 @@ export async function toggleProductAvailability(
   }
 
   revalidatePath("/admin/orders");
-  revalidatePath('/');
+  revalidatePath("/");
   revalidateTag(PRODUCTS_CACHE_TAG);
 }
 
@@ -276,10 +275,7 @@ export async function createProduct(data: CreateProductInput): Promise<void> {
   revalidateTag(PRODUCTS_CACHE_TAG);
 }
 
-export async function updateProduct(
-  productId: string,
-  data: UpdateProductInput
-): Promise<void> {
+export async function updateProduct(productId: string, data: UpdateProductInput): Promise<void> {
   await assertAdminAccess();
   const supabase = supabaseAdmin();
 
@@ -586,4 +582,159 @@ export async function deletePromoCode(promoCodeId: string): Promise<void> {
   }
 
   revalidatePath("/admin/orders");
+}
+
+interface AdminFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  is_published: boolean;
+}
+
+interface FaqItemInput {
+  question: string;
+  answer: string;
+}
+
+function revalidateFaq() {
+  revalidatePath("/admin/orders");
+  revalidatePath("/faq");
+  revalidateTag(FAQ_CACHE_TAG);
+}
+
+export async function fetchFaqItems(): Promise<AdminFaqItem[]> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { data, error } = await supabase
+    .from("faq_items")
+    .select("id,question,answer,sort_order,is_published")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch FAQ items: ${error.message}`);
+  }
+
+  return (data ?? []) as AdminFaqItem[];
+}
+
+export async function createFaqItem(data: FaqItemInput): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = faqItemSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(
+      parsed.error.issues[0]?.message ?? "Please provide a valid question and answer."
+    );
+  }
+
+  // New questions go to the bottom of the list.
+  const { data: last, error: lastError } = await supabase
+    .from("faq_items")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (lastError) {
+    throw new Error(`Failed to create FAQ item: ${lastError.message}`);
+  }
+
+  const { error } = await supabase.from("faq_items").insert({
+    question: parsed.data.question,
+    answer: parsed.data.answer,
+    sort_order: ((last as { sort_order: number } | null)?.sort_order ?? 0) + 1,
+    is_published: true,
+  });
+
+  if (error) {
+    throw new Error(`Failed to create FAQ item: ${error.message}`);
+  }
+
+  revalidateFaq();
+}
+
+export async function updateFaqItem(faqItemId: string, data: FaqItemInput): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = faqItemSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(
+      parsed.error.issues[0]?.message ?? "Please provide a valid question and answer."
+    );
+  }
+
+  const { error } = await supabase
+    .from("faq_items")
+    .update({
+      question: parsed.data.question,
+      answer: parsed.data.answer,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", faqItemId);
+
+  if (error) {
+    throw new Error(`Failed to update FAQ item: ${error.message}`);
+  }
+
+  revalidateFaq();
+}
+
+export async function toggleFaqItemPublished(
+  faqItemId: string,
+  isPublished: boolean
+): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase
+    .from("faq_items")
+    .update({ is_published: isPublished, updated_at: new Date().toISOString() })
+    .eq("id", faqItemId);
+
+  if (error) {
+    throw new Error(`Failed to update FAQ item: ${error.message}`);
+  }
+
+  revalidateFaq();
+}
+
+export async function deleteFaqItem(faqItemId: string): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { error } = await supabase.from("faq_items").delete().eq("id", faqItemId);
+
+  if (error) {
+    throw new Error(`Failed to delete FAQ item: ${error.message}`);
+  }
+
+  revalidateFaq();
+}
+
+/**
+ * Persists the admin panel's full ▲/▼ ordering in one atomic statement
+ * via the reorder_faq_items() SQL function (016_create_faq_items.sql) -
+ * each id's sort_order becomes its 1-based position in the array.
+ */
+export async function reorderFaqItems(orderedIds: string[]): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsed = faqReorderSchema.safeParse(orderedIds);
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Invalid FAQ order.");
+  }
+
+  const { error } = await supabase.rpc("reorder_faq_items", { ids: parsed.data });
+
+  if (error) {
+    throw new Error(`Failed to reorder FAQ items: ${error.message}`);
+  }
+
+  revalidateFaq();
 }

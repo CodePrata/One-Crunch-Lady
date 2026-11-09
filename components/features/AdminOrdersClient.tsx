@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminBannersPanel from "@/components/features/admin/AdminBannersPanel";
+import AdminFaqPanel from "@/components/features/admin/AdminFaqPanel";
 import AdminOrdersPanel from "@/components/features/admin/AdminOrdersPanel";
 import AdminProductsPanel from "@/components/features/admin/AdminProductsPanel";
 import AdminPromoCodesPanel from "@/components/features/admin/AdminPromoCodesPanel";
@@ -54,20 +55,30 @@ interface AdminPromoCode {
   is_active: boolean;
 }
 
+interface AdminFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  is_published: boolean;
+}
+
 interface AdminOrdersClientProps {
   initialOrders: AdminOrder[];
   initialProducts: AdminProduct[];
   initialBanners: AdminBanner[];
   initialPromoCodes: AdminPromoCode[];
+  initialFaqItems: AdminFaqItem[];
 }
 
-type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS" | "PROMO_CODES";
+type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS" | "PROMO_CODES" | "FAQ";
 
 const TABS: Array<{ id: AdminTab; label: string }> = [
   { id: "ORDERS", label: "Orders" },
   { id: "PRODUCTS", label: "Products" },
   { id: "BANNERS", label: "Banners" },
   { id: "PROMO_CODES", label: "Promo Codes" },
+  { id: "FAQ", label: "FAQ" },
 ];
 
 /**
@@ -84,6 +95,7 @@ export default function AdminOrdersClient({
   initialProducts,
   initialBanners,
   initialPromoCodes,
+  initialFaqItems,
 }: AdminOrdersClientProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -99,9 +111,7 @@ export default function AdminOrdersClient({
   return (
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
-          Admin Dashboard
-        </h1>
+        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">Admin Dashboard</h1>
         <div className="flex gap-2">
           <button
             type="button"
@@ -148,6 +158,9 @@ export default function AdminOrdersClient({
       ) : null}
       {activeTab === "PROMO_CODES" ? (
         <AdminPromoCodesPanel initialPromoCodes={initialPromoCodes} onFeedback={setFeedback} />
+      ) : null}
+      {activeTab === "FAQ" ? (
+        <AdminFaqPanel initialFaqItems={initialFaqItems} onFeedback={setFeedback} />
       ) : null}
 
       {feedback ? (

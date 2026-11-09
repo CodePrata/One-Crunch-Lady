@@ -280,7 +280,7 @@ export default function AdminProductsPanel({
                   className={`tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold ${
                     product.is_available
                       ? "bg-hero-yellow text-cookie-brown-dark"
-                      : "bg-cookie-brown text-flour-white"
+                      : "bg-cookie-brown-dark text-flour-white"
                   }`}
                 >
                   {product.is_available ? "Deactivate" : "Activate"}

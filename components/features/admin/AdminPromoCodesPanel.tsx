@@ -278,7 +278,7 @@ export default function AdminPromoCodesPanel({
                         className={`tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold ${
                           promo.is_active
                             ? "bg-hero-yellow text-cookie-brown-dark"
-                            : "bg-cookie-brown text-flour-white"
+                            : "bg-cookie-brown-dark text-flour-white"
                         }`}
                       >
                         {promo.is_active ? "Deactivate" : "Activate"}

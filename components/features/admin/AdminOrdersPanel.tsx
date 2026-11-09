@@ -106,7 +106,7 @@ export default function AdminOrdersPanel({
             onClick={() => setActiveTab(tab.id)}
             className={`tap-target rounded-md border-2 border-cookie-brown px-3 text-sm font-semibold ${
               activeTab === tab.id
-                ? "bg-cookie-brown text-flour-white"
+                ? "bg-cookie-brown-dark text-flour-white"
                 : "bg-flour-white text-cookie-brown-dark"
             }`}
           >

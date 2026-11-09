@@ -205,7 +205,7 @@ export default function AdminBannersPanel({
                     className={`tap-target rounded-md border-2 border-cookie-brown px-4 text-sm font-semibold ${
                       banner.is_active
                         ? "bg-hero-yellow text-cookie-brown-dark"
-                        : "bg-cookie-brown text-flour-white"
+                        : "bg-cookie-brown-dark text-flour-white"
                     }`}
                   >
                     {banner.is_active ? "Deactivate" : "Activate"}

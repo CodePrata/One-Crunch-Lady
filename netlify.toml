@@ -11,5 +11,12 @@
 # cancels the build - for free, 0 credits - when a push only touches
 # docs or hand-applied SQL migrations that can't affect build output.
 # Exit 0 cancels the build, non-zero lets it proceed.
+#
+# The leading [ CACHED != COMMIT ] check is required: when Netlify has no
+# usable cache (or the last built commit is this same commit, e.g. one
+# already built as a client-review branch deploy) it sets
+# CACHED_COMMIT_REF == COMMIT_REF, so the diff is empty and the guard
+# would cancel a real production release. That happened on the
+# 2026-11-09 release. With nothing real to compare against, always build.
 [build]
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)*.md' ':(exclude)supabase/migrations/*'"
+  ignore = "[ \"$CACHED_COMMIT_REF\" != \"$COMMIT_REF\" ] && git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)*.md' ':(exclude)supabase/migrations/*'"

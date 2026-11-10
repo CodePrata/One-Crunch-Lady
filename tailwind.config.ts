@@ -12,6 +12,8 @@ const config: Config = {
       screens: {
         mobile: "375px",
         tablet: "768px",
+        // Keep keys ascending - Tailwind emits screen variants in key order.
+        laptop: "1024px",
         desktop: "1280px",
       },
       colors: {

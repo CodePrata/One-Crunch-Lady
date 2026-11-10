@@ -19,7 +19,7 @@ const NAV_LINKS = [
 
 /**
  * Site header: image logo lockup + primary nav. Six nav items (five text
- * links plus Cart) don't fit inline below `desktop:` (1280px) - mobile
+ * links plus Cart) don't fit inline below `laptop:` (1024px) - mobile
  * and tablet get a hamburger panel, matching the focus-trap + scroll-lock
  * pattern the cart drawer and product modal already use (see
  * hooks/useFocusTrap.ts, hooks/useBodyScrollLock.ts) rather than a new one.
@@ -92,7 +92,13 @@ export default function Header() {
         a solid color the way it does on the static footer.
       */}
       <header className="z-header sticky top-0 border-b-[3px] border-cookie-brown bg-[#EFECEB]">
-        <div className="responsive-shell flex items-center justify-between gap-3 px-4 py-1.5 tablet:px-6 desktop:px-8">
+        {/* Not .responsive-shell: that class caps at 768px until 1280px, and
+            its media rules in globals.css load after Tailwind's utilities,
+            so they'd override a laptop: width here. These are the same
+            widths written out, plus a 1024px step so the inline nav has
+            room at laptop: (a 1920px screen at 150% scaling is exactly
+            1280px wide - any browser sidebar or zoom drops it below). */}
+        <div className="mx-auto flex w-[min(100%,375px)] items-center justify-between gap-3 px-4 py-1.5 tablet:w-[min(100%,768px)] tablet:px-6 laptop:w-[min(100%,1024px)] desktop:w-[min(100%,1280px)] desktop:px-8">
           <Link
             href="/"
             className="tap-target inline-flex items-center gap-2"
@@ -128,8 +134,8 @@ export default function Header() {
             />
           </Link>
 
-          {/* Inline nav - only shown at desktop: (1280px) and up */}
-          <nav aria-label="Primary" className="hidden items-center gap-6 desktop:flex">
+          {/* Inline nav - only shown at laptop: (1024px) and up */}
+          <nav aria-label="Primary" className="hidden items-center gap-6 laptop:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -163,14 +169,14 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Hamburger trigger - hidden at desktop: and up */}
+          {/* Hamburger trigger - hidden at laptop: and up */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(true)}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav-panel"
             aria-label="Open menu"
-            className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown-dark desktop:hidden"
+            className="tap-target inline-flex items-center justify-center rounded-md border-2 border-cookie-brown text-cookie-brown-dark laptop:hidden"
           >
             <List size={24} weight="bold" aria-hidden="true" />
           </button>
@@ -184,7 +190,7 @@ export default function Header() {
           no matter what value it's given. As a top-level sibling, z-modal
           compares correctly against the rest of the named scale. */}
       {isMenuOpen ? (
-        <div className="z-modal fixed inset-0 desktop:hidden">
+        <div className="z-modal fixed inset-0 laptop:hidden">
           <button
             type="button"
             aria-label="Close menu"

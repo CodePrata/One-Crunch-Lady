@@ -1,4 +1,5 @@
 import { InstagramLogo, TiktokLogo } from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
 import Link from "next/link";
 import { instagramUrl, tiktokUrl } from "@/config/site";
 
@@ -12,7 +13,16 @@ export default function Footer() {
     <footer className="mt-12 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
       <div className="responsive-shell grid gap-4 px-4 py-8 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
         <div>
-          <p className="font-display text-3xl uppercase text-cookie-brown-dark">One Crunch Lady</p>
+          {/* Splash badge (public/ocl_logo-nobg.png) cropped to its visible
+              circle. unoptimized: local /public asset - see Header.tsx. */}
+          <Image
+            src="/footer-logo.png"
+            alt="One Crunch Lady"
+            width={327}
+            height={308}
+            unoptimized
+            className="h-32 w-auto object-contain tablet:h-36"
+          />
           <p className="mt-2 text-base text-cookie-brown-dark">
             Comic-crunch cookies with bold flavor and heart.
           </p>

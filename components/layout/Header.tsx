@@ -131,7 +131,7 @@ export default function Header() {
             aria-label="One Crunch Lady home"
             onClick={closeMenu}
           >
-            {/* unoptimized: these are local /public assets - the custom
+            {/* unoptimized: this is a local /public asset - the custom
                 Cloudinary loader (lib/cloudinary-loader.ts) passes any
                 "/"-prefixed src through unchanged regardless of the
                 requested width, which is correct (never round-trip a
@@ -149,15 +149,9 @@ export default function Header() {
               className="h-20 w-auto object-contain tablet:h-24 desktop:h-28"
               priority
             />
-            <Image
-              src="/header-title.png"
-              alt="One Crunch Lady"
-              width={612}
-              height={408}
-              unoptimized
-              className="h-16 w-auto object-contain tablet:h-20 desktop:h-24"
-              priority
-            />
+            <span className="whitespace-nowrap font-display text-2xl uppercase leading-none text-cookie-brown-dark mobile:text-3xl tablet:text-4xl desktop:text-5xl">
+              One Crunch Lady
+            </span>
           </Link>
 
           {/* Inline nav - only shown at laptop: (1024px) and up */}

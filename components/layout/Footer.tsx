@@ -11,7 +11,10 @@ import { instagramUrl, tiktokUrl } from "@/config/site";
 export default function Footer() {
   return (
     <footer className="mt-12 border-t-[3px] border-cookie-brown bg-cookie-brown/10">
-      <div className="responsive-shell grid gap-4 px-4 py-8 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
+      {/* pb-24 (96px): clearance for the fixed CartBubble (bottom-5 + h-14
+          + badge = ~82px up from the viewport bottom), so the last row of
+          links isn't covered when scrolled to the very end of the page. */}
+      <div className="responsive-shell grid gap-4 px-4 pb-24 pt-8 tablet:px-6 desktop:grid-cols-2 desktop:px-8">
         <div>
           {/* Splash badge (public/ocl_logo-nobg.png) cropped to its visible
               circle. unoptimized: local /public asset - see Header.tsx. */}

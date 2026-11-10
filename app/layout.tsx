@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SPLASH_DISMISSED_STORAGE_KEY } from "@/components/features/IntroLanding";
 import { siteUrl } from "@/config/site";
+import { getHeaderBranding } from "@/lib/branding";
 import "./globals.css";
 
 const inter = Inter({
@@ -51,11 +52,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Admin-editable header logo pieces. Cached with no time-based
+  // revalidation (see lib/branding.ts) so static pages stay static.
+  const branding = await getHeaderBranding();
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${bangers.variable} antialiased`}>
@@ -80,7 +85,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <div className="min-h-screen bg-flour-white">
-          <Header />
+          <Header branding={branding} />
           <div id="main-content">{children}</div>
           <Footer />
         </div>

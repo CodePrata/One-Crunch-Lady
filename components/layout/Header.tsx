@@ -1,13 +1,14 @@
 "use client";
 
 import { List, ShoppingCart, X } from "@phosphor-icons/react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { HeaderMascot, HeaderWordmark } from "@/components/layout/HeaderLogo";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useCartHasHydrated, useCartStore } from "@/lib/store/cart";
+import type { HeaderBranding } from "@/types/models";
 
 const NAV_LINKS = [
   { href: "/story", label: "Our Story" },
@@ -29,9 +30,10 @@ const LAPTOP_MEDIA_QUERY = "(min-width: 1024px)";
  * hooks/useFocusTrap.ts, hooks/useBodyScrollLock.ts) rather than a new one.
  *
  * Client Component (menu state, live cart count) - app/layout.tsx around
- * it stays a Server Component.
+ * it stays a Server Component, and reads the admin-editable logo pieces
+ * (lib/branding.ts) to pass in as `branding`.
  */
-export default function Header() {
+export default function Header({ branding }: { branding: HeaderBranding }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -127,31 +129,12 @@ export default function Header() {
         <div className="mx-auto flex w-[min(100%,375px)] items-center justify-between gap-3 px-4 py-1.5 tablet:w-[min(100%,768px)] tablet:px-6 laptop:w-[min(100%,1024px)] desktop:w-[min(100%,1280px)] desktop:px-8">
           <Link
             href="/"
-            className="tap-target inline-flex items-center gap-2"
+            className="tap-target inline-flex min-w-0 items-center gap-2"
             aria-label="One Crunch Lady home"
             onClick={closeMenu}
           >
-            {/* unoptimized: this is a local /public asset - the custom
-                Cloudinary loader (lib/cloudinary-loader.ts) passes any
-                "/"-prefixed src through unchanged regardless of the
-                requested width, which is correct (never round-trip a
-                local asset through Cloudinary) but is exactly what makes
-                Next.js's responsive-width heuristic warn that the loader
-                "does not implement width". unoptimized reflects reality -
-                a single fixed-size URL, no width-variant srcset - and
-                suppresses the (accurate, but not actionable here) warning. */}
-            <Image
-              src="/header-logo.png"
-              alt=""
-              width={285}
-              height={408}
-              unoptimized
-              className="h-20 w-auto object-contain tablet:h-24 desktop:h-28"
-              priority
-            />
-            <span className="whitespace-nowrap font-display text-2xl uppercase leading-none text-cookie-brown-dark mobile:text-3xl tablet:text-4xl desktop:text-5xl">
-              One Crunch Lady
-            </span>
+            <HeaderMascot image={branding.mascot} />
+            <HeaderWordmark image={branding.wordmark} />
           </Link>
 
           {/* Inline nav - only shown at laptop: (1024px) and up */}

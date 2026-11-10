@@ -1,5 +1,6 @@
 import {
   fetchBanners,
+  fetchBranding,
   fetchFaqItems,
   fetchOrders,
   fetchProducts,
@@ -8,12 +9,13 @@ import {
 import AdminOrdersClient from "@/components/features/AdminOrdersClient";
 
 export default async function AdminOrdersPage() {
-  const [orders, products, banners, promoCodes, faqItems] = await Promise.all([
+  const [orders, products, banners, promoCodes, faqItems, branding] = await Promise.all([
     fetchOrders(),
     fetchProducts(),
     fetchBanners(),
     fetchPromoCodes(),
     fetchFaqItems(),
+    fetchBranding(),
   ]);
   return (
     <AdminOrdersClient
@@ -22,6 +24,7 @@ export default async function AdminOrdersPage() {
       initialBanners={banners}
       initialPromoCodes={promoCodes}
       initialFaqItems={faqItems}
+      initialBranding={branding}
     />
   );
 }

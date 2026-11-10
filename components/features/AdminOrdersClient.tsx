@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminBannersPanel from "@/components/features/admin/AdminBannersPanel";
+import AdminBrandingPanel from "@/components/features/admin/AdminBrandingPanel";
 import AdminFaqPanel from "@/components/features/admin/AdminFaqPanel";
 import AdminOrdersPanel from "@/components/features/admin/AdminOrdersPanel";
 import AdminProductsPanel from "@/components/features/admin/AdminProductsPanel";
@@ -63,15 +64,25 @@ interface AdminFaqItem {
   is_published: boolean;
 }
 
+interface AdminBranding {
+  header_mascot_url: string | null;
+  header_mascot_width: number | null;
+  header_mascot_height: number | null;
+  header_wordmark_url: string | null;
+  header_wordmark_width: number | null;
+  header_wordmark_height: number | null;
+}
+
 interface AdminOrdersClientProps {
   initialOrders: AdminOrder[];
   initialProducts: AdminProduct[];
   initialBanners: AdminBanner[];
   initialPromoCodes: AdminPromoCode[];
   initialFaqItems: AdminFaqItem[];
+  initialBranding: AdminBranding;
 }
 
-type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS" | "PROMO_CODES" | "FAQ";
+type AdminTab = "ORDERS" | "PRODUCTS" | "BANNERS" | "PROMO_CODES" | "FAQ" | "BRANDING";
 
 const TABS: Array<{ id: AdminTab; label: string }> = [
   { id: "ORDERS", label: "Orders" },
@@ -79,6 +90,7 @@ const TABS: Array<{ id: AdminTab; label: string }> = [
   { id: "BANNERS", label: "Banners" },
   { id: "PROMO_CODES", label: "Promo Codes" },
   { id: "FAQ", label: "FAQ" },
+  { id: "BRANDING", label: "Branding" },
 ];
 
 /**
@@ -96,6 +108,7 @@ export default function AdminOrdersClient({
   initialBanners,
   initialPromoCodes,
   initialFaqItems,
+  initialBranding,
 }: AdminOrdersClientProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -161,6 +174,9 @@ export default function AdminOrdersClient({
       ) : null}
       {activeTab === "FAQ" ? (
         <AdminFaqPanel initialFaqItems={initialFaqItems} onFeedback={setFeedback} />
+      ) : null}
+      {activeTab === "BRANDING" ? (
+        <AdminBrandingPanel initialBranding={initialBranding} onFeedback={setFeedback} />
       ) : null}
 
       {feedback ? (

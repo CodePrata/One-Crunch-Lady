@@ -9,6 +9,8 @@
 // here, since anything exported from this module can end up in the
 // browser bundle.
 
+import type { BrandImage } from "@/types/models";
+
 /** Brand name shown in the UI, page titles, email copy, and the PayNow
  * merchant-name field (EMVCo tag 59, truncated to 25 chars there). */
 export const brandName = "One Crunch Lady";
@@ -39,6 +41,14 @@ export const cloudinaryUploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_
 // f_auto could serve WebP to Gmail while breaking Outlook, so PNG is the
 // one safe universal choice for this transparent logo on a solid header.
 export const emailLogoUrl = `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/f_png,w_240,q_auto/ocl_logo-nobg_x2il4w.png`;
+
+// Built-in header mascot, used whenever the admin Branding tab has no
+// custom mascot set (site_branding.header_mascot_url is null).
+export const defaultHeaderMascot: BrandImage = {
+  url: "/header-logo.png",
+  width: 285,
+  height: 408,
+};
 
 export const pickupHours = "Mon-Sat, 10:00 AM - 7:00 PM";
 

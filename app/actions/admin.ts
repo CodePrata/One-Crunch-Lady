@@ -8,10 +8,17 @@ import { pickupHours } from "@/config/site";
 import PaymentConfirmedEmail from "@/emails/PaymentConfirmedEmail";
 import ReadyForPickupEmail from "@/emails/ReadyForPickupEmail";
 import { BANNERS_CACHE_TAG } from "@/lib/banners";
+import { BRANDING_CACHE_TAG } from "@/lib/branding";
 import { FAQ_CACHE_TAG } from "@/lib/faq";
 import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { supabaseAdmin, supabaseServerAuth } from "@/lib/supabase/server";
 import { bannerSchema } from "@/lib/validations/banner";
+import {
+  type BrandingImageInput,
+  type BrandingSlot,
+  brandingImageSchema,
+  brandingSlotSchema,
+} from "@/lib/validations/branding";
 import { faqItemSchema, faqReorderSchema } from "@/lib/validations/faq";
 import { productDiscountSchema, productSchema } from "@/lib/validations/product";
 import { promoCodeSchema } from "@/lib/validations/promo";
@@ -479,6 +486,106 @@ export async function deleteBanner(bannerId: string): Promise<void> {
   revalidatePath("/admin/orders");
   revalidatePath("/promotion");
   revalidateTag(BANNERS_CACHE_TAG);
+}
+
+interface AdminBranding {
+  header_mascot_url: string | null;
+  header_mascot_width: number | null;
+  header_mascot_height: number | null;
+  header_wordmark_url: string | null;
+  header_wordmark_width: number | null;
+  header_wordmark_height: number | null;
+}
+
+const EMPTY_BRANDING: AdminBranding = {
+  header_mascot_url: null,
+  header_mascot_width: null,
+  header_mascot_height: null,
+  header_wordmark_url: null,
+  header_wordmark_width: null,
+  header_wordmark_height: null,
+};
+
+// The header is in the root layout, so a branding change affects every
+// page: revalidatePath("/", "layout") covers all routes, and the tag
+// covers lib/branding.ts's cached read (which has no time-based expiry).
+function revalidateBranding() {
+  revalidatePath("/admin/orders");
+  revalidatePath("/", "layout");
+  revalidateTag(BRANDING_CACHE_TAG);
+}
+
+export async function fetchBranding(): Promise<AdminBranding> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const { data, error } = await supabase
+    .from("site_branding")
+    .select(
+      "header_mascot_url,header_mascot_width,header_mascot_height,header_wordmark_url,header_wordmark_width,header_wordmark_height"
+    )
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch branding: ${error.message}`);
+  }
+
+  return (data as AdminBranding | null) ?? EMPTY_BRANDING;
+}
+
+export async function setHeaderImage(slot: BrandingSlot, data: BrandingImageInput): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsedSlot = brandingSlotSchema.safeParse(slot);
+  const parsed = brandingImageSchema.safeParse(data);
+  if (!parsedSlot.success) {
+    throw new Error("Unknown logo slot.");
+  }
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Please provide a valid image.");
+  }
+
+  const prefix = `header_${parsedSlot.data}`;
+  const { error } = await supabase.from("site_branding").upsert({
+    id: 1,
+    [`${prefix}_url`]: parsed.data.image_url,
+    [`${prefix}_width`]: parsed.data.image_width,
+    [`${prefix}_height`]: parsed.data.image_height,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw new Error(`Failed to save logo: ${error.message}`);
+  }
+
+  revalidateBranding();
+}
+
+export async function resetHeaderImage(slot: BrandingSlot): Promise<void> {
+  await assertAdminAccess();
+  const supabase = supabaseAdmin();
+
+  const parsedSlot = brandingSlotSchema.safeParse(slot);
+  if (!parsedSlot.success) {
+    throw new Error("Unknown logo slot.");
+  }
+
+  const prefix = `header_${parsedSlot.data}`;
+  const { error } = await supabase.from("site_branding").upsert({
+    id: 1,
+    [`${prefix}_url`]: null,
+    [`${prefix}_width`]: null,
+    [`${prefix}_height`]: null,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw new Error(`Failed to reset logo: ${error.message}`);
+  }
+
+  revalidateBranding();
 }
 
 interface AdminPromoCode {

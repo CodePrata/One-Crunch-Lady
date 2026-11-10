@@ -17,6 +17,10 @@ const NAV_LINKS = [
   { href: "/faq", label: "FAQ" },
 ];
 
+// Must match the `laptop` screen in tailwind.config.ts - the width at which
+// the inline nav replaces the hamburger.
+const LAPTOP_MEDIA_QUERY = "(min-width: 1024px)";
+
 /**
  * Site header: image logo lockup + primary nav. Six nav items (five text
  * links plus Cart) don't fit inline below `laptop:` (1024px) - mobile
@@ -66,6 +70,28 @@ export default function Header() {
 
     return () => {
       window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMenuOpen]);
+
+  // At laptop: and up the overlay is CSS-hidden, but isMenuOpen would stay
+  // true - leaving useBodyScrollLock holding the page unscrollable with no
+  // visible way to close it. Close the menu when the window widens past it.
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return;
+    }
+
+    const laptopQuery = window.matchMedia(LAPTOP_MEDIA_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    laptopQuery.addEventListener("change", handleChange);
+
+    return () => {
+      laptopQuery.removeEventListener("change", handleChange);
     };
   }, [isMenuOpen]);
 

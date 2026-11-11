@@ -1,0 +1,54 @@
+# Audit 2026-11 D-2: automatic checks on every push, before anything is
+# released. Runs on GitHub's free Actions minutes - it costs no Netlify
+# credits. Check that the latest run on `main` is green before
+# `git push origin main:production`.
+#
+# No `next build` here: the build prerenders pages against the production
+# Supabase database and needs every production secret. `npm run verify`
+# (which does build) stays a local step before each release.
+name: CI
+
+on:
+  push:
+    branches: [main, audit-fixes, client-review, production]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Unit tests
+        run: npm test
+        env:
+          CI: "true"
+
+      # Report-only for now: the remaining high/critical advisories (Next
+      # 14, next-cloudinary's zod) need major-version upgrades, which are
+      # tracked separately (audit D-4). Make this step blocking once that
+      # upgrade is done by deleting `continue-on-error`.
+      - name: Dependency audit (production deps)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

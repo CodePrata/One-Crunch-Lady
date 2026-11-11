@@ -1,0 +1,35 @@
+# Audit 2026-11 D-1: Supabase Free projects pause after a period of
+# inactivity, which would break checkout and the admin until someone
+# un-pauses it by hand. One tiny read a day counts as activity. It goes
+# straight to Supabase, so it costs no Netlify credits.
+#
+# Needs repository secrets SUPABASE_URL and SUPABASE_ANON_KEY - the same
+# public values as NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.
+# Not needed once the project is on Supabase Pro (no pausing there).
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # Daily 01:00 UTC = 09:00 SGT.
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one product row
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --max-time 30 \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/products?select=id&limit=1" > /dev/null
+          echo "Supabase responded."

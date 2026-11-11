@@ -39,6 +39,16 @@ Hosted on Netlify. Netlify auto-detects Next.js and builds it with zero configur
 - Deploy Previews (opened automatically on any pushed branch) are a full, free production-grade build - use one to verify a change before releasing, rather than releasing to check.
 - Rollback is free: Netlify → Deploys → pick a previous production deploy → **Publish deploy**.
 
+## GitHub Actions
+
+All three run on GitHub's free Actions minutes and cost no Netlify credits.
+
+- **CI** ([.github/workflows/ci.yml](.github/workflows/ci.yml)): lint, type-check, unit tests and a (currently report-only) dependency audit on every push to `main`, `client-review`, `production` and `audit-fixes`. Check it's green before releasing.
+- **DB backup** ([.github/workflows/db-backup.yml](.github/workflows/db-backup.yml)): weekly encrypted `pg_dump`, kept as an artifact for 90 days. A stopgap while the database is on Supabase's Free plan (no backups). Needs the `SUPABASE_DB_URL` and `BACKUP_PASSPHRASE` secrets; restore steps are in the file's header comment.
+- **Supabase keep-alive** ([.github/workflows/keepalive.yml](.github/workflows/keepalive.yml)): one read a day so the Free-plan project doesn't pause. Needs the `SUPABASE_URL` and `SUPABASE_ANON_KEY` secrets.
+
+GitHub turns off scheduled workflows after 60 days without a commit. If the backup or keep-alive stops, re-enable it from the Actions tab.
+
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

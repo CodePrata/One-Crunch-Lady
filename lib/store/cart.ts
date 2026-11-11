@@ -36,6 +36,17 @@ export interface ShowToastOptions {
 
 interface CartState {
   items: CartLineItem[];
+  /**
+   * Idempotency token for the next checkout (audit 2026-11 B-8). Kept
+   * here, persisted with the cart, rather than in CheckoutForm's state:
+   * if an order's response is lost and the customer closes the drawer or
+   * moves to /cart, the retry reuses the same token, so createOrder hands
+   * back the existing order instead of inserting a duplicate. A new token
+   * is minted whenever the cart's contents change (a genuinely different
+   * order) and after every successful order.
+   */
+  checkoutToken: string;
+  renewCheckoutToken: () => void;
   hasHydrated: boolean;
   isOpen: boolean;
   toast: CartToast | null;
@@ -77,11 +88,14 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      checkoutToken: crypto.randomUUID(),
       hasHydrated: false,
       isOpen: false,
       toast: null,
 
       setHasHydrated: (value) => set({ hasHydrated: value }),
+
+      renewCheckoutToken: () => set({ checkoutToken: crypto.randomUUID() }),
 
       addItem: (productId, quantity = 1) => {
         const existing = get().items.find((item) => item.productId === productId);
@@ -91,6 +105,7 @@ export const useCartStore = create<CartState>()(
       removeItem: (productId) => {
         set((state) => ({
           items: state.items.filter((item) => item.productId !== productId),
+          checkoutToken: crypto.randomUUID(),
         }));
       },
 
@@ -102,29 +117,42 @@ export const useCartStore = create<CartState>()(
 
           if (nextQuantity <= 0) {
             return existing
-              ? { items: state.items.filter((item) => item.productId !== productId) }
+              ? {
+                  items: state.items.filter((item) => item.productId !== productId),
+                  checkoutToken: crypto.randomUUID(),
+                }
               : state;
           }
 
           if (!existing) {
-            return { items: [...state.items, { productId, quantity: nextQuantity }] };
+            return {
+              items: [...state.items, { productId, quantity: nextQuantity }],
+              checkoutToken: crypto.randomUUID(),
+            };
+          }
+
+          if (existing.quantity === nextQuantity) {
+            return state;
           }
 
           return {
             items: state.items.map((item) =>
               item.productId === productId ? { ...item, quantity: nextQuantity } : item
             ),
+            checkoutToken: crypto.randomUUID(),
           };
         });
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], checkoutToken: crypto.randomUUID() }),
 
       reconcileWithCatalog: (catalogProductIds) => {
         const validIds = new Set(catalogProductIds);
         set((state) => {
           const nextItems = state.items.filter((item) => validIds.has(item.productId));
-          return nextItems.length === state.items.length ? state : { items: nextItems };
+          return nextItems.length === state.items.length
+            ? state
+            : { items: nextItems, checkoutToken: crypto.randomUUID() };
         });
       },
 
@@ -160,7 +188,7 @@ export const useCartStore = create<CartState>()(
       // from the product catalog on every render (see useCartCatalogItems
       // in CartCatalogProvider) so a cart left open for days can never
       // checkout at a stale price or a deleted/sold-out item.
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ items: state.items, checkoutToken: state.checkoutToken }),
       // Rehydrate manually (see useCartHasHydrated) so the server-rendered
       // pass and the first client paint agree on an empty cart; the real
       // localStorage value is applied a tick later, after mount.

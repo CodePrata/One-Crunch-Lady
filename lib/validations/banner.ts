@@ -4,13 +4,10 @@ import { isValidImageUrl } from "@/lib/validations/product";
 // snake_case to match app/actions/admin.ts's banner action payloads,
 // which mirror the promotion_banners table shape for a direct insert.
 export const bannerSchema = z.object({
-  image_url: z
-    .string()
-    .trim()
-    .min(1, "Please upload a banner image.")
-    .refine(isValidImageUrl, {
-      message: "Image URL must be a https://res.cloudinary.com URL.",
-    }),
+  image_url: z.string().trim().min(1, "Please upload a banner image.").refine(isValidImageUrl, {
+    message:
+      "Please upload the image with the Upload button (it must be on this shop's Cloudinary account).",
+  }),
   alt_text: z
     .string()
     .trim()

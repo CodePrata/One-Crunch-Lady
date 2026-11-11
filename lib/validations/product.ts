@@ -9,13 +9,27 @@ const CLOUDINARY_HOST = "res.cloudinary.com";
 // reuse by lib/validations/banner.ts - the same widget, the same host
 // restriction.
 export function isValidImageUrl(value: string): boolean {
+  return isImageUrlFromCloud(value, process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
+}
+
+/**
+ * The testable core of isValidImageUrl. Besides the host, the path must
+ * start with this account's cloud name (audit 2026-11 S-7): otherwise an
+ * image hosted on someone else's Cloudinary account would pass, and its
+ * owner could later swap or delete it. With no cloud name configured,
+ * only the host is checked.
+ */
+export function isImageUrlFromCloud(value: string, cloudName: string | undefined): boolean {
   if (value === "") {
     return true;
   }
 
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === CLOUDINARY_HOST;
+    if (url.protocol !== "https:" || url.hostname !== CLOUDINARY_HOST) {
+      return false;
+    }
+    return cloudName ? url.pathname.startsWith(`/${cloudName}/`) : true;
   } catch {
     return false;
   }
@@ -41,7 +55,8 @@ export const productSchema = z.object({
     .positive("Price must be greater than 0.")
     .max(1000, "Price must be $1,000 or less."),
   image_url: z.string().trim().refine(isValidImageUrl, {
-    message: "Image URL must be a https://res.cloudinary.com URL.",
+    message:
+      "Please upload the image with the Upload button (it must be on this shop's Cloudinary account).",
   }),
   // Was max(60) - the DB check constraint (008_add_category_to_products.sql)
   // caps at 40, so a 41-60 char category previously passed this schema and

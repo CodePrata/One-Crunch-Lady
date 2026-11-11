@@ -1,16 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-function getRequiredEnvVar(name: string): string {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  return value;
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -22,8 +12,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const supabaseUrl = getRequiredEnvVar("NEXT_PUBLIC_SUPABASE_URL");
-  const supabaseAnonKey = getRequiredEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // A readable 503 instead of an opaque 500 from a throw (audit 2026-11 Q-3).
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("middleware: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY not set");
+    return new NextResponse(
+      "The admin dashboard is misconfigured (missing Supabase settings). Please contact the site developer.",
+      { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } }
+    );
+  }
+
   let response = NextResponse.next();
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {

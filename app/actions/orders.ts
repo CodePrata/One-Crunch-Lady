@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { Resend } from "resend";
-import { resendApiKey } from "@/config/server";
+import { resendApiKey, turnstileSecretKey } from "@/config/server";
 import {
   sendOrderReceivedEmail,
   sendOwnerAlertEmail,
@@ -10,7 +10,9 @@ import {
 } from "@/lib/order-emails";
 import { getEffectivePrice } from "@/lib/pricing";
 import { checkPromoCode } from "@/lib/promo";
+import { checkRateLimits, getClientIp, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { orderSchema, type OrderFormValues } from "@/lib/validations/order";
 
 interface CreateOrderResult {
@@ -18,6 +20,8 @@ interface CreateOrderResult {
   orderRef?: string;
   accessToken?: string;
   error?: string;
+  /** True when the order was refused because items or prices changed - the client should refresh the catalog. */
+  cartChanged?: boolean;
 }
 
 type SupabaseAdminClient = ReturnType<typeof createClient>;
@@ -77,6 +81,21 @@ export async function createOrder(rawValues: OrderFormValues): Promise<CreateOrd
   }
 
   const values = parsed.data;
+  const clientIp = getClientIp();
+
+  // Bot check first, before any database work (audit 2026-11 S-1).
+  const isHuman = await verifyTurnstile({
+    secret: turnstileSecretKey,
+    token: values.turnstileToken,
+    ip: clientIp,
+  });
+  if (!isHuman) {
+    return {
+      success: false,
+      error: "We couldn't confirm you're not a bot. Please try again, or order via WhatsApp.",
+    };
+  }
+
   const supabase = createClient();
 
   const selectedEntries = Object.entries(values.quantities).filter(([, quantity]) => quantity > 0);
@@ -131,11 +150,40 @@ export async function createOrder(rawValues: OrderFormValues): Promise<CreateOrd
     };
   }
 
-  const products = productsResult.data;
-  if (productsResult.error || !products || products.length === 0) {
+  // Per connection, per customer email, and site-wide (audit 2026-11 S-1).
+  // Checked after the idempotency lookup so a retry of an order that
+  // already went through never counts against the limit. 5/hour per IP
+  // rather than 3: Singapore mobile carriers put many customers behind
+  // one shared IP.
+  const withinLimits = await checkRateLimits([
+    { key: rateLimitKey("order-ip", clientIp), window: "1 hour", max: 5 },
+    { key: rateLimitKey("order-email", values.customerEmail), window: "1 day", max: 3 },
+    { key: "order-global", window: "1 hour", max: 60 },
+  ]);
+  if (!withinLimits) {
     return {
       success: false,
-      error: "No valid products selected. Please update your order.",
+      error: "We've received a lot of orders from you recently. Please WhatsApp us to order.",
+    };
+  }
+
+  const products = productsResult.data;
+  if (productsResult.error || !products) {
+    return {
+      success: false,
+      error: "We could not submit your order right now. Please try again.",
+    };
+  }
+
+  // Something in the cart was sold out or removed since the customer
+  // loaded the page. Refuse rather than silently dropping it from the
+  // order (audit 2026-11 B-7).
+  if (products.length < selectedIds.length) {
+    return {
+      success: false,
+      cartChanged: true,
+      error:
+        "Some items in your cart are no longer available. We've refreshed your cart - please review it.",
     };
   }
 
@@ -166,6 +214,23 @@ export async function createOrder(rawValues: OrderFormValues): Promise<CreateOrd
       success: false,
       error: "Please select at least one available item.",
     };
+  }
+
+  // A price or discount changed after the cart was shown. Refuse rather
+  // than charging a different amount than the customer saw (B-7).
+  if (values.expectedUnitPrices) {
+    const expected = values.expectedUnitPrices;
+    const priceChanged = orderItems.some((item) => {
+      const shown = expected[item.productId];
+      return shown === undefined || Math.abs(shown - item.unitPrice) > 0.005;
+    });
+    if (priceChanged) {
+      return {
+        success: false,
+        cartChanged: true,
+        error: "Some prices have changed. We've refreshed your cart - please review the total.",
+      };
+    }
   }
 
   if (recentByEmailResult.error || recentByPhoneResult.error) {

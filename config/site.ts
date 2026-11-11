@@ -30,6 +30,13 @@ export const tiktokUrl = process.env.NEXT_PUBLIC_TIKTOK_URL || "https://www.tikt
 
 export const cloudinaryCloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 export const cloudinaryUploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+// Public by design (Cloudinary's API key identifies the account; the API
+// SECRET, server-only in config/server.ts, is what signs uploads).
+export const cloudinaryApiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+
+// Cloudflare Turnstile site key (public) for the checkout and contact
+// forms. "" when unset, so the widget renders nothing in that case.
+export const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 // Absolute Cloudinary URL for the logo shown in every outgoing email
 // (emails/BaseLayout.tsx). Deliberately NOT derived from siteUrl above -

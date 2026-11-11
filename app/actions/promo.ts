@@ -1,6 +1,7 @@
 "use server";
 
 import { checkPromoCode } from "@/lib/promo";
+import { checkRateLimits, getClientIp, rateLimitKey } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export interface ValidatePromoCodeResult {
@@ -45,6 +46,20 @@ export async function validatePromoCode(
   code: string,
   subtotal: number
 ): Promise<ValidatePromoCodeResult> {
+  // Server-side limit per connection, so codes can't be brute-forced by a
+  // script calling this action directly (audit 2026-11 S-3). Stored in
+  // the database, not a cookie, so it doesn't trigger the route refresh
+  // described above.
+  const withinLimit = await checkRateLimits([
+    { key: rateLimitKey("promo-ip", getClientIp()), window: "1 hour", max: 10 },
+  ]);
+  if (!withinLimit) {
+    return {
+      valid: false,
+      error: "Too many promo code attempts. Please try again later.",
+    };
+  }
+
   const supabase = createClient();
   const result = await checkPromoCode(supabase, code, subtotal);
 

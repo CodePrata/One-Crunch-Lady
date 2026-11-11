@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { submitContactMessage } from "@/app/actions/contact";
+import TurnstileWidget from "@/components/features/TurnstileWidget";
 import { contactSchema, type ContactFormValues } from "@/lib/validations/contact";
 import { useCartStore } from "@/lib/store/cart";
 
@@ -11,6 +12,9 @@ export default function ContactForm() {
   const showToast = useCartStore((state) => state.showToast);
   const [submitted, setSubmitted] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Turnstile tokens are single-use: bumped after every attempt.
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const {
     register,
@@ -25,7 +29,8 @@ export default function ContactForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setSubmissionError(null);
-    const result = await submitContactMessage(values);
+    const result = await submitContactMessage(values, turnstileToken ?? undefined);
+    setTurnstileReset((count) => count + 1);
 
     if (!result.success) {
       setSubmissionError(
@@ -109,6 +114,8 @@ export default function ContactForm() {
           <p className="mt-1 text-sm font-semibold text-power-red">{errors.message.message}</p>
         ) : null}
       </div>
+
+      <TurnstileWidget onToken={setTurnstileToken} resetSignal={turnstileReset} />
 
       {submissionError ? (
         <div className="rounded-md border-2 border-power-red bg-power-red/10 p-3">

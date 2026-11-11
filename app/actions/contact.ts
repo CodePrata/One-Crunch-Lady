@@ -3,10 +3,12 @@
 import { render } from "@react-email/render";
 import { cookies } from "next/headers";
 import { Resend } from "resend";
-import { emailFrom, ownerEmail, resendApiKey } from "@/config/server";
+import { emailFrom, ownerEmail, resendApiKey, turnstileSecretKey } from "@/config/server";
 import { whatsappNumber } from "@/config/site";
 import ContactMessageEmail from "@/emails/ContactMessageEmail";
 import { sendEmail } from "@/lib/email";
+import { checkRateLimits, getClientIp, rateLimitKey } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { contactSchema, type ContactFormValues } from "@/lib/validations/contact";
 
 const SUBMISSION_COOKIE = "last_contact";
@@ -24,7 +26,7 @@ function stripHtmlTags(input: string): string {
 /**
  * Public action - never throws, mirrors app/actions/orders.ts's result-
  * object pattern (see the "Error handling in Server Actions" note in
- * CLAUDE.md) rather than admin.ts's throw-on-failure style.
+ * CLAUDE.md).
  *
  * Unlike createOrder, an email send failure here IS a hard failure: a
  * contact message has no database row backing it, the email is the only
@@ -32,7 +34,10 @@ function stripHtmlTags(input: string): string {
  * does for its status-change emails, where the order itself already
  * persisted) would just lose the message with no trace.
  */
-export async function submitContactMessage(rawValues: ContactFormValues): Promise<ContactResult> {
+export async function submitContactMessage(
+  rawValues: ContactFormValues,
+  turnstileToken?: string
+): Promise<ContactResult> {
   // Honeypot: real visitors never see or fill this hidden field (see
   // components/features/ContactForm.tsx). A bot that fills every field it
   // finds trips this - return a fake success so it gets no signal it was
@@ -69,6 +74,32 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
   }
 
   const { email, message } = parsed.data;
+
+  // Bot check and a per-connection limit (audit 2026-11 B-11): the cookie
+  // above is ignored by any script, and every message spends the same
+  // Resend quota as order emails.
+  const clientIp = getClientIp();
+  const isHuman = await verifyTurnstile({
+    secret: turnstileSecretKey,
+    token: turnstileToken,
+    ip: clientIp,
+  });
+  if (!isHuman) {
+    return {
+      success: false,
+      error: "We couldn't confirm you're not a bot. Please try again, or message us on WhatsApp.",
+    };
+  }
+
+  const withinLimit = await checkRateLimits([
+    { key: rateLimitKey("contact-ip", clientIp), window: "1 hour", max: 3 },
+  ]);
+  if (!withinLimit) {
+    return {
+      success: false,
+      error: "You've sent several messages recently. Please message us on WhatsApp instead.",
+    };
+  }
 
   let sent = false;
   try {

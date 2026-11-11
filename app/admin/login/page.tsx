@@ -5,6 +5,24 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+/**
+ * A different message per failure (audit 2026-11 F-2) - "check your
+ * password" for a network error or rate limit sends the owner off to
+ * reset a password that was fine.
+ */
+function loginErrorMessage(error: { status?: number; code?: string; name?: string }): string {
+  if (error.code === "email_not_confirmed") {
+    return "This email address hasn't been confirmed yet. Check your inbox for the confirmation link.";
+  }
+  if (error.status === 429 || error.code === "over_request_rate_limit") {
+    return "Too many login attempts. Please wait a few minutes and try again.";
+  }
+  if (error.name === "AuthRetryableFetchError" || !error.status || error.status >= 500) {
+    return "We couldn't reach the login server. Check your internet connection and try again.";
+  }
+  return "Wrong email or password. Please try again, or use Forgot Password below.";
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -24,7 +42,7 @@ export default function AdminLoginPage() {
     });
 
     if (signInError) {
-      setError("Login failed. Please check your password and try again.");
+      setError(loginErrorMessage(signInError));
       setLoading(false);
       return;
     }
@@ -36,9 +54,7 @@ export default function AdminLoginPage() {
   return (
     <main className="responsive-shell px-4 py-12 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
-          Admin Login
-        </h1>
+        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">Admin Login</h1>
         <p className="mt-2 text-sm text-cookie-brown-dark">
           Sign in as owner to manage orders and product availability.
         </p>
@@ -78,9 +94,7 @@ export default function AdminLoginPage() {
             />
           </div>
 
-          {error ? (
-            <p className="text-sm font-semibold text-power-red">{error}</p>
-          ) : null}
+          {error ? <p className="text-sm font-semibold text-power-red">{error}</p> : null}
 
           <button
             type="submit"

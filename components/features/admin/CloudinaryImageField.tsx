@@ -1,6 +1,7 @@
 "use client";
 
 import { CldUploadWidget } from "next-cloudinary";
+import { signCloudinaryUpload } from "@/app/actions/cloudinary";
 
 interface CloudinaryImageFieldProps {
   value: string;
@@ -23,9 +24,9 @@ interface CloudinaryImageFieldProps {
  * Shared upload-widget button + status text - extracted from two
  * near-identical copies previously in the product create/edit forms
  * (components/features/AdminOrdersClient.tsx), now also used by the
- * banner create form. The upload goes browser -> Cloudinary directly via
- * an unsigned preset (NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET, see the CSP
- * in next.config.mjs) - onChange only ever receives the resulting
+ * banner create form. The upload goes browser -> Cloudinary directly (see
+ * the CSP in next.config.mjs), signed per upload by the admin-only
+ * signCloudinaryUpload action - onChange only ever receives the resulting
  * secure_url, nothing is uploaded through this app's server.
  */
 export default function CloudinaryImageField({
@@ -44,7 +45,32 @@ export default function CloudinaryImageField({
           maxFiles: 1,
           resourceType: "image",
           clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
-          maxFileSize: 10_000_000,
+          // Matches the 5 MB limit set on the preset itself in the
+          // Cloudinary console, which is the limit that's enforced.
+          maxFileSize: 5_000_000,
+          // Signed upload (audit 2026-11 S-2): the widget asks our
+          // admin-only server action to sign each upload. Passed here
+          // rather than via signatureEndpoint because this app has no API
+          // routes - next-cloudinary uses a function given in options as
+          // is. The API key comes from NEXT_PUBLIC_CLOUDINARY_API_KEY.
+          uploadSignature: (
+            callback: (signature: string | null) => void,
+            paramsToSign: Record<string, string | number>
+          ) => {
+            signCloudinaryUpload(paramsToSign)
+              .then((result) => {
+                if (!result.ok) {
+                  console.error("[cloudinary] upload signing refused:", result.error);
+                  callback(null);
+                  return;
+                }
+                callback(result.signature);
+              })
+              .catch((error: unknown) => {
+                console.error("[cloudinary] upload signing failed", error);
+                callback(null);
+              });
+          },
         }}
         onSuccess={(result) => {
           // result.info is typed string | CloudinaryUploadWidgetInfo by

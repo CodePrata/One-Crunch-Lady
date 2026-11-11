@@ -42,6 +42,16 @@ const serverEnvSchema = z.object({
   DPO_EMAIL: z
     .string()
     .email("DPO_EMAIL must be a valid email address (the published PDPA contact)."),
+  // Cloudflare Turnstile secret - checkout and the contact form verify
+  // the visitor's Turnstile token with it (lib/turnstile.ts).
+  TURNSTILE_SECRET_KEY: z
+    .string()
+    .min(1, "TURNSTILE_SECRET_KEY is required to verify the bot check on checkout and contact."),
+  // Signs admin image uploads (app/actions/cloudinary.ts), so the upload
+  // preset can be set to Signed and nobody else can upload to the account.
+  CLOUDINARY_API_SECRET: z
+    .string()
+    .min(1, "CLOUDINARY_API_SECRET is required to sign admin image uploads."),
 });
 
 const parsed = serverEnvSchema.safeParse({
@@ -50,10 +60,14 @@ const parsed = serverEnvSchema.safeParse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
   DPO_EMAIL: process.env.DPO_EMAIL,
+  TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 });
 
 if (!parsed.success) {
-  const issues = parsed.error.issues.map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`);
+  const issues = parsed.error.issues.map(
+    (issue) => `  - ${issue.path.join(".")}: ${issue.message}`
+  );
   throw new Error(`Invalid or missing server environment variables:\n${issues.join("\n")}`);
 }
 
@@ -62,3 +76,5 @@ export const ownerEmail = parsed.data.OWNER_EMAIL;
 export const resendApiKey = parsed.data.RESEND_API_KEY;
 export const emailFrom = parsed.data.EMAIL_FROM;
 export const dpoEmail = parsed.data.DPO_EMAIL;
+export const turnstileSecretKey = parsed.data.TURNSTILE_SECRET_KEY;
+export const cloudinaryApiSecret = parsed.data.CLOUDINARY_API_SECRET;

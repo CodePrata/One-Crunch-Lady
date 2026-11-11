@@ -18,18 +18,25 @@ try {
 // next-cloudinary's CldUploadWidget (admin product image upload) loads its
 // script and opens its picker from Cloudinary's own widget host, and
 // uploads go straight to Cloudinary's API - not through our server.
+// Cloudflare Turnstile (checkout + contact bot check) loads its script and
+// renders its challenge in an iframe from challenges.cloudflare.com.
 const cspDirectives = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://upload-widget.cloudinary.com`,
+  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://upload-widget.cloudinary.com https://challenges.cloudflare.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https://res.cloudinary.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   `connect-src 'self' https://api.cloudinary.com${supabaseHttpOrigin ? ` ${supabaseHttpOrigin}` : ""}${supabaseWsOrigin ? ` ${supabaseWsOrigin}` : ""}`,
-  "frame-src https://upload-widget.cloudinary.com",
+  "frame-src https://upload-widget.cloudinary.com https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
+  // Audit 2026-11 S-6 (minimum): any http:// subresource is fetched over
+  // https instead of loading insecurely. A nonce-based script-src would be
+  // stronger but forces every page to render dynamically, which costs
+  // Netlify credits on every view.
+  ...(isProd ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 const securityHeaders = [

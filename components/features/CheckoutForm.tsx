@@ -2,11 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { createOrder } from "@/app/actions/orders";
 import { validatePromoCode } from "@/app/actions/promo";
 import { useCartCatalogItems } from "@/components/features/CartCatalogProvider";
+import TurnstileWidget from "@/components/features/TurnstileWidget";
 import { whatsappNumber } from "@/config/site";
 import { useCartStore } from "@/lib/store/cart";
 import {
@@ -43,12 +45,19 @@ interface CheckoutFormProps {
  * association) in that case.
  */
 export default function CheckoutForm({ children, onSuccess, className }: CheckoutFormProps) {
+  const router = useRouter();
   const clearCart = useCartStore((state) => state.clearCart);
+  // Persisted with the cart (see CartState.checkoutToken), so a retry
+  // after a lost response reuses it even if this form remounted.
+  const idempotencyToken = useCartStore((state) => state.checkoutToken);
+  const renewCheckoutToken = useCartStore((state) => state.renewCheckoutToken);
   const { lines, unavailableLines, subtotal, itemCount } = useCartCatalogItems();
   const formId = useId();
 
-  const [idempotencyToken, setIdempotencyToken] = useState<string>(() => crypto.randomUUID());
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Turnstile tokens are single-use: bumped after every order attempt.
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const [promoCodeInput, setPromoCodeInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{
@@ -139,10 +148,17 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
     // Cart items ({productId, quantity}[]) mapped into the shape
     // createOrder/orderSchema expects (a productId -> quantity record).
     const quantities = Object.fromEntries(lines.map((line) => [line.product.id, line.quantity]));
+    // The unit prices this cart is showing - createOrder refuses the order
+    // if any of them changed since, rather than charging a different total.
+    const expectedUnitPrices = Object.fromEntries(
+      lines.map((line) => [line.product.id, line.unitPrice])
+    );
 
     const payload: OrderFormValues = {
       ...contactValues,
       quantities,
+      expectedUnitPrices,
+      turnstileToken: turnstileToken ?? undefined,
       idempotencyToken,
       // Only an already-Applied code, never whatever's sitting unvalidated
       // in promoCodeInput. createOrder re-validates this independently
@@ -152,6 +168,13 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
     };
 
     const result = await createOrder(payload);
+    setTurnstileReset((count) => count + 1);
+
+    if (result.cartChanged) {
+      // Re-fetch the catalog so the cart shows current prices and
+      // availability before the customer tries again.
+      router.refresh();
+    }
 
     if (!result.success || !result.orderRef || !result.accessToken) {
       setSubmissionError(
@@ -162,9 +185,10 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
     }
 
     clearCart();
-    // Fresh token for whatever the customer orders next this session -
-    // reusing a spent one would just replay the same orderRef.
-    setIdempotencyToken(crypto.randomUUID());
+    // Fresh token for whatever the customer orders next - reusing a spent
+    // one would just replay the same orderRef. (clearCart renews it too;
+    // this keeps it explicit.)
+    renewCheckoutToken();
     setAppliedPromo(null);
     setPromoCodeInput("");
     onSuccess({ orderRef: result.orderRef, accessToken: result.accessToken });
@@ -387,6 +411,8 @@ export default function CheckoutForm({ children, onSuccess, className }: Checkou
               Remove the sold-out item{unavailableLines.length === 1 ? "" : "s"} above to continue.
             </p>
           ) : null}
+
+          <TurnstileWidget onToken={setTurnstileToken} resetSignal={turnstileReset} />
 
           {submissionError ? (
             <div className="rounded-md border-2 border-power-red bg-power-red/10 p-3">

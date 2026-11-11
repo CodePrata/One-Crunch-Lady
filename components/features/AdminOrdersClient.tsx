@@ -9,69 +9,14 @@ import AdminOrdersPanel from "@/components/features/admin/AdminOrdersPanel";
 import AdminProductsPanel from "@/components/features/admin/AdminProductsPanel";
 import AdminPromoCodesPanel from "@/components/features/admin/AdminPromoCodesPanel";
 import { createClient } from "@/lib/supabase/client";
-
-interface AdminOrder {
-  id: number;
-  order_ref: string;
-  customer_name: string | null;
-  customer_email: string | null;
-  total_price: number;
-  status: string;
-  created_at: string;
-}
-
-interface AdminProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  ingredients: string | null;
-  category?: string | null;
-  is_available: boolean;
-  discount_type: "PERCENT" | "FIXED" | null;
-  discount_value: number | null;
-}
-
-interface AdminBanner {
-  id: string;
-  image_url: string;
-  alt_text: string;
-  sort_order: number;
-  is_active: boolean;
-  image_width: number | null;
-  image_height: number | null;
-}
-
-interface AdminPromoCode {
-  id: string;
-  code: string;
-  discount_type: "PERCENT" | "FIXED";
-  discount_value: number;
-  min_subtotal: number;
-  max_redemptions: number | null;
-  redemption_count: number;
-  starts_at: string | null;
-  expires_at: string | null;
-  is_active: boolean;
-}
-
-interface AdminFaqItem {
-  id: string;
-  question: string;
-  answer: string;
-  sort_order: number;
-  is_published: boolean;
-}
-
-interface AdminBranding {
-  header_mascot_url: string | null;
-  header_mascot_width: number | null;
-  header_mascot_height: number | null;
-  header_wordmark_url: string | null;
-  header_wordmark_width: number | null;
-  header_wordmark_height: number | null;
-}
+import type {
+  AdminBanner,
+  AdminBranding,
+  AdminFaqItem,
+  AdminOrder,
+  AdminProduct,
+  AdminPromoCode,
+} from "@/types/admin";
 
 interface AdminOrdersClientProps {
   initialOrders: AdminOrder[];

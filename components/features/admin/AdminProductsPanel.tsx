@@ -9,20 +9,9 @@ import {
   toggleProductAvailability,
   updateProduct,
 } from "@/app/actions/admin";
+import { assertOk } from "@/lib/admin-client";
+import type { AdminProduct } from "@/types/admin";
 import CloudinaryImageField from "@/components/features/admin/CloudinaryImageField";
-
-interface AdminProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string | null;
-  ingredients: string | null;
-  category?: string | null;
-  is_available: boolean;
-  discount_type: "PERCENT" | "FIXED" | null;
-  discount_value: number | null;
-}
 
 interface ProductDraft {
   name: string;
@@ -85,7 +74,7 @@ export default function AdminProductsPanel({
 
   async function handleToggleProduct(productId: string, isAvailable: boolean) {
     try {
-      await toggleProductAvailability(productId, isAvailable);
+      assertOk(await toggleProductAvailability(productId, isAvailable));
       onFeedback("Product availability updated.");
       setProducts((current) =>
         current.map((product) =>
@@ -101,10 +90,11 @@ export default function AdminProductsPanel({
   async function handleCreateProduct(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      await createProduct({
+      const result = await createProduct({
         ...newProduct,
         price: Number(newProduct.price),
       });
+      assertOk(result);
       onFeedback("Product created.");
       setNewProduct(EMPTY_PRODUCT_DRAFT);
       setIsCreatingProduct(false);
@@ -128,10 +118,11 @@ export default function AdminProductsPanel({
 
   async function handleSaveEdit(productId: string) {
     try {
-      await updateProduct(productId, {
+      const result = await updateProduct(productId, {
         ...editDraft,
         price: Number(editDraft.price),
       });
+      assertOk(result);
       onFeedback("Product updated.");
       setEditingProductId(null);
       router.refresh();
@@ -150,10 +141,11 @@ export default function AdminProductsPanel({
 
   async function handleSaveDiscount(productId: string) {
     try {
-      await setProductDiscount(productId, {
+      const result = await setProductDiscount(productId, {
         discount_type: discountDraft.discount_type,
         discount_value: Number(discountDraft.discount_value),
       });
+      assertOk(result);
       onFeedback("Discount applied.");
       setDiscountEditingProductId(null);
       router.refresh();
@@ -164,7 +156,7 @@ export default function AdminProductsPanel({
 
   async function handleClearDiscount(productId: string) {
     try {
-      await clearProductDiscount(productId);
+      assertOk(await clearProductDiscount(productId));
       onFeedback("Discount cleared.");
       setDiscountEditingProductId(null);
       router.refresh();
@@ -310,7 +302,9 @@ export default function AdminProductsPanel({
                       type="number"
                       min="0"
                       step="0.01"
-                      placeholder={discountDraft.discount_type === "PERCENT" ? "e.g. 20" : "e.g. 2.00"}
+                      placeholder={
+                        discountDraft.discount_type === "PERCENT" ? "e.g. 20" : "e.g. 2.00"
+                      }
                       value={discountDraft.discount_value}
                       onChange={(event) =>
                         setDiscountDraft((current) => ({

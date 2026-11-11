@@ -4,17 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createBanner, deleteBanner, toggleBannerActive } from "@/app/actions/admin";
+import { assertOk } from "@/lib/admin-client";
+import type { AdminBanner } from "@/types/admin";
 import CloudinaryImageField from "@/components/features/admin/CloudinaryImageField";
-
-interface AdminBanner {
-  id: string;
-  image_url: string;
-  alt_text: string;
-  sort_order: number;
-  is_active: boolean;
-  image_width: number | null;
-  image_height: number | null;
-}
 
 interface BannerDraft {
   image_url: string;
@@ -57,7 +49,7 @@ export default function AdminBannersPanel({
     event.preventDefault();
 
     try {
-      await createBanner({
+      const result = await createBanner({
         image_url: newBanner.image_url,
         alt_text: newBanner.alt_text,
         sort_order: newBanner.sort_order ? Number(newBanner.sort_order) : undefined,
@@ -68,6 +60,7 @@ export default function AdminBannersPanel({
         image_width: newBanner.image_width ?? undefined,
         image_height: newBanner.image_height ?? undefined,
       });
+      assertOk(result);
       onFeedback(
         newBanner.image_width && newBanner.image_height
           ? "Banner created."
@@ -83,10 +76,12 @@ export default function AdminBannersPanel({
 
   async function handleToggleBanner(bannerId: string, isActive: boolean) {
     try {
-      await toggleBannerActive(bannerId, isActive);
+      assertOk(await toggleBannerActive(bannerId, isActive));
       onFeedback("Banner updated.");
       setBanners((current) =>
-        current.map((banner) => (banner.id === bannerId ? { ...banner, is_active: isActive } : banner))
+        current.map((banner) =>
+          banner.id === bannerId ? { ...banner, is_active: isActive } : banner
+        )
       );
       router.refresh();
     } catch (error) {
@@ -101,7 +96,7 @@ export default function AdminBannersPanel({
     }
 
     try {
-      await deleteBanner(bannerId);
+      assertOk(await deleteBanner(bannerId));
       onFeedback("Banner deleted.");
       setBanners((current) => current.filter((banner) => banner.id !== bannerId));
       router.refresh();

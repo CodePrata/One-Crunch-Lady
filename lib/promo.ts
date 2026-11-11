@@ -98,6 +98,12 @@ export async function checkPromoCode(
     promo.discount_value
   );
 
+  // A code that wipes out the whole total would mean free cookies and a
+  // $0.00 PayNow QR that bank apps reject (audit 2026-11 B-3.4 / Q-7).
+  if (total <= 0) {
+    return { valid: false, error: "This code can't be used on an order this small." };
+  }
+
   return {
     valid: true,
     promo,

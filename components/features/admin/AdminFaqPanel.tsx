@@ -10,14 +10,8 @@ import {
   toggleFaqItemPublished,
   updateFaqItem,
 } from "@/app/actions/admin";
-
-interface AdminFaqItem {
-  id: string;
-  question: string;
-  answer: string;
-  sort_order: number;
-  is_published: boolean;
-}
+import { assertOk } from "@/lib/admin-client";
+import type { AdminFaqItem } from "@/types/admin";
 
 interface FaqDraft {
   question: string;
@@ -57,7 +51,7 @@ export default function AdminFaqPanel({
     event.preventDefault();
 
     try {
-      await createFaqItem(newItem);
+      assertOk(await createFaqItem(newItem));
       onFeedback("Question added.");
       setNewItem(EMPTY_FAQ_DRAFT);
       setIsCreating(false);
@@ -74,7 +68,7 @@ export default function AdminFaqPanel({
 
   async function handleSaveEdit(itemId: string) {
     try {
-      await updateFaqItem(itemId, editDraft);
+      assertOk(await updateFaqItem(itemId, editDraft));
       onFeedback("Question updated.");
       setFaqItems((current) =>
         current.map((item) =>
@@ -92,7 +86,7 @@ export default function AdminFaqPanel({
 
   async function handleTogglePublished(itemId: string, isPublished: boolean) {
     try {
-      await toggleFaqItemPublished(itemId, isPublished);
+      assertOk(await toggleFaqItemPublished(itemId, isPublished));
       onFeedback(isPublished ? "Question published." : "Question hidden from the FAQ page.");
       setFaqItems((current) =>
         current.map((item) => (item.id === itemId ? { ...item, is_published: isPublished } : item))
@@ -110,7 +104,7 @@ export default function AdminFaqPanel({
     }
 
     try {
-      await deleteFaqItem(itemId);
+      assertOk(await deleteFaqItem(itemId));
       onFeedback("Question deleted.");
       setFaqItems((current) => current.filter((item) => item.id !== itemId));
       router.refresh();
@@ -134,7 +128,7 @@ export default function AdminFaqPanel({
     setIsReordering(true);
 
     try {
-      await reorderFaqItems(reordered.map((item) => item.id));
+      assertOk(await reorderFaqItems(reordered.map((item) => item.id)));
       router.refresh();
     } catch (error) {
       setFaqItems(previous);

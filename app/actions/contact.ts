@@ -6,6 +6,7 @@ import { Resend } from "resend";
 import { emailFrom, ownerEmail, resendApiKey } from "@/config/server";
 import { whatsappNumber } from "@/config/site";
 import ContactMessageEmail from "@/emails/ContactMessageEmail";
+import { sendEmail } from "@/lib/email";
 import { contactSchema, type ContactFormValues } from "@/lib/validations/contact";
 
 const SUBMISSION_COOKIE = "last_contact";
@@ -69,6 +70,7 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
 
   const { email, message } = parsed.data;
 
+  let sent = false;
   try {
     const resend = new Resend(resendApiKey);
     const emailElement = ContactMessageEmail({ customerEmail: email, message, whatsappNumber });
@@ -79,16 +81,26 @@ export async function submitContactMessage(rawValues: ContactFormValues): Promis
       render(emailElement, { plainText: true }),
     ]);
 
-    await resend.emails.send({
-      from: emailFrom,
-      to: ownerEmail,
-      replyTo: email,
-      subject: "New Contact Message - One Crunch Lady",
-      html,
-      text,
-    });
+    // sendEmail checks Resend's resolved `error` too - the SDK doesn't
+    // throw on API errors, so a try/catch alone used to report success
+    // for a message that was never delivered (audit B-1).
+    sent = await sendEmail(
+      resend,
+      {
+        from: emailFrom,
+        to: ownerEmail,
+        replyTo: email,
+        subject: "New Contact Message - One Crunch Lady",
+        html,
+        text,
+      },
+      "contact"
+    );
   } catch (error) {
-    console.error("Failed to send contact message email", error);
+    console.error("[email:contact] rendering failed", error);
+  }
+
+  if (!sent) {
     return {
       success: false,
       error:

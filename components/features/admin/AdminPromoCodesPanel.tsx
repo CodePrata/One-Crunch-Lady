@@ -2,24 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  createPromoCode,
-  deletePromoCode,
-  togglePromoCodeActive,
-} from "@/app/actions/admin";
-
-interface AdminPromoCode {
-  id: string;
-  code: string;
-  discount_type: "PERCENT" | "FIXED";
-  discount_value: number;
-  min_subtotal: number;
-  max_redemptions: number | null;
-  redemption_count: number;
-  starts_at: string | null;
-  expires_at: string | null;
-  is_active: boolean;
-}
+import { createPromoCode, deletePromoCode, togglePromoCodeActive } from "@/app/actions/admin";
+import { assertOk } from "@/lib/admin-client";
+import type { AdminPromoCode } from "@/types/admin";
 
 interface PromoCodeDraft {
   code: string;
@@ -84,7 +69,7 @@ export default function AdminPromoCodesPanel({
     event.preventDefault();
 
     try {
-      await createPromoCode({
+      const result = await createPromoCode({
         code: draft.code,
         discount_type: draft.discount_type,
         discount_value: Number(draft.discount_value),
@@ -93,6 +78,7 @@ export default function AdminPromoCodesPanel({
         starts_at: draft.starts_at || undefined,
         expires_at: draft.expires_at || undefined,
       });
+      assertOk(result);
       onFeedback("Promo code created.");
       setDraft(EMPTY_PROMO_DRAFT);
       setIsCreating(false);
@@ -104,10 +90,12 @@ export default function AdminPromoCodesPanel({
 
   async function handleToggle(promoCodeId: string, isActive: boolean) {
     try {
-      await togglePromoCodeActive(promoCodeId, isActive);
+      assertOk(await togglePromoCodeActive(promoCodeId, isActive));
       onFeedback("Promo code updated.");
       setPromoCodes((current) =>
-        current.map((promo) => (promo.id === promoCodeId ? { ...promo, is_active: isActive } : promo))
+        current.map((promo) =>
+          promo.id === promoCodeId ? { ...promo, is_active: isActive } : promo
+        )
       );
       router.refresh();
     } catch (error) {
@@ -122,7 +110,7 @@ export default function AdminPromoCodesPanel({
     }
 
     try {
-      await deletePromoCode(promoCodeId);
+      assertOk(await deletePromoCode(promoCodeId));
       onFeedback("Promo code deleted.");
       setPromoCodes((current) => current.filter((promo) => promo.id !== promoCodeId));
       router.refresh();
@@ -148,7 +136,9 @@ export default function AdminPromoCodesPanel({
               required
               placeholder="Code (e.g. SAVE10)"
               value={draft.code}
-              onChange={(event) => setDraft((current) => ({ ...current, code: event.target.value }))}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, code: event.target.value }))
+              }
               className="tap-target rounded-md border-2 border-cookie-brown px-3"
             />
             <div className="grid gap-3 tablet:grid-cols-2">
@@ -297,7 +287,9 @@ export default function AdminPromoCodesPanel({
                       ? `Min spend $${Number(promo.min_subtotal).toFixed(2)} · `
                       : ""}
                     Used {promo.redemption_count}
-                    {promo.max_redemptions !== null ? ` / ${promo.max_redemptions}` : " (unlimited)"}
+                    {promo.max_redemptions !== null
+                      ? ` / ${promo.max_redemptions}`
+                      : " (unlimited)"}
                     {starts ? ` · Starts ${starts}` : ""}
                     {expires ? ` · Expires ${expires}` : ""}
                   </p>

@@ -1,4 +1,4 @@
-import { Heading, Hr, Section, Text } from "@react-email/components";
+import { Heading, Hr, Link, Section, Text } from "@react-email/components";
 import BaseLayout from "@/emails/BaseLayout";
 
 interface OrderItem {
@@ -17,6 +17,8 @@ interface OrderReceivedEmailProps {
   promoCode?: string | null;
   paynowNumber: string;
   whatsappNumber: string;
+  /** Link back to /order/success/<ref>?t=<token>, which shows the PayNow QR code - so a customer who closed that tab can still pay by scanning. */
+  orderPageUrl?: string;
 }
 
 export default function OrderReceivedEmail({
@@ -28,6 +30,7 @@ export default function OrderReceivedEmail({
   promoCode,
   paynowNumber,
   whatsappNumber,
+  orderPageUrl,
 }: OrderReceivedEmailProps) {
   const hasDiscount = Boolean(promoCode && discountAmount && discountAmount > 0);
 
@@ -43,8 +46,7 @@ export default function OrderReceivedEmail({
       <Section style={{ marginTop: "16px" }}>
         {items.map((item) => (
           <Text key={`${item.productName}-${item.quantity}`}>
-            {item.productName} x {item.quantity} - $
-            {(item.unitPrice * item.quantity).toFixed(2)}
+            {item.productName} x {item.quantity} - ${(item.unitPrice * item.quantity).toFixed(2)}
           </Text>
         ))}
       </Section>
@@ -60,9 +62,14 @@ export default function OrderReceivedEmail({
       ) : null}
       <Text style={{ fontWeight: "700" }}>Total: ${totalPrice.toFixed(2)}</Text>
       <Text>
-        Please PayNow to <strong>{paynowNumber}</strong> and share your payment
-        proof on WhatsApp.
+        Please PayNow to <strong>{paynowNumber}</strong> and share your payment proof on WhatsApp.
       </Text>
+      {orderPageUrl ? (
+        <Text>
+          Need the PayNow QR code again?{" "}
+          <Link href={orderPageUrl}>View your order and payment QR</Link>
+        </Text>
+      ) : null}
     </BaseLayout>
   );
 }

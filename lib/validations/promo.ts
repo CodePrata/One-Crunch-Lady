@@ -7,9 +7,14 @@ export const promoCodeSchema = z
     code: z
       .string()
       .trim()
-      .min(3, "Code must be at least 3 characters.")
+      // 6+ so codes can't be guessed by trying every short combination
+      // (audit 2026-11 S-3).
+      .min(6, "Code must be at least 6 characters.")
       .max(32, "Code must be 32 characters or fewer.")
-      .regex(/^[A-Za-z0-9_-]+$/, "Code can only contain letters, numbers, hyphens, and underscores."),
+      .regex(
+        /^[A-Za-z0-9_-]+$/,
+        "Code can only contain letters, numbers, hyphens, and underscores."
+      ),
     discount_type: z.enum(["PERCENT", "FIXED"], {
       message: "Choose a discount type.",
     }),
@@ -34,6 +39,16 @@ export const promoCodeSchema = z
   .refine((data) => data.discount_type !== "PERCENT" || data.discount_value <= 100, {
     message: "Percentage discount must be 100 or less.",
     path: ["discount_value"],
-  });
+  })
+  // Without a minimum spend above the discount, a $5-off code makes a $4
+  // order free (audit 2026-11 B-3.4). Checkout also refuses any code that
+  // brings the total to $0 (lib/promo.ts), this just catches it earlier.
+  .refine(
+    (data) => data.discount_type !== "FIXED" || (data.min_subtotal ?? 0) > data.discount_value,
+    {
+      message: "For a fixed-amount code, set a minimum spend higher than the discount.",
+      path: ["min_subtotal"],
+    }
+  );
 
 export type PromoCodeFormValues = z.infer<typeof promoCodeSchema>;

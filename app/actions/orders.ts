@@ -2,14 +2,16 @@
 
 import { cookies } from "next/headers";
 import { Resend } from "resend";
-import { emailFrom, ownerEmail, paynowNumber, resendApiKey } from "@/config/server";
-import OrderReceivedEmail from "@/emails/OrderReceivedEmail";
-import OwnerAlertEmail from "@/emails/OwnerAlertEmail";
+import { resendApiKey } from "@/config/server";
+import {
+  sendOrderReceivedEmail,
+  sendOwnerAlertEmail,
+  type OrderEmailData,
+} from "@/lib/order-emails";
 import { getEffectivePrice } from "@/lib/pricing";
 import { checkPromoCode } from "@/lib/promo";
 import { createClient } from "@/lib/supabase/server";
 import { orderSchema, type OrderFormValues } from "@/lib/validations/order";
-import { render } from "@react-email/render";
 
 interface CreateOrderResult {
   success: boolean;
@@ -17,6 +19,10 @@ interface CreateOrderResult {
   accessToken?: string;
   error?: string;
 }
+
+type SupabaseAdminClient = ReturnType<typeof createClient>;
+
+const LAST_SUBMISSION_COOKIE = "last_submission";
 
 function stripHtmlTags(input: string): string {
   return input.replace(/<[^>]*>/g, "");
@@ -32,11 +38,26 @@ function sanitizePayload(values: OrderFormValues): OrderFormValues {
   };
 }
 
-export async function createOrder(
-  rawValues: OrderFormValues
-): Promise<CreateOrderResult> {
-  const cookieStore = cookies();
-  const lastSubmission = cookieStore.get("last_submission")?.value;
+function setLastSubmissionCookie(now: number) {
+  cookies().set(LAST_SUBMISSION_COOKIE, String(now), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60,
+  });
+}
+
+/** Gives back a promo redemption claimed for an order that never got saved. */
+async function releasePromoClaim(supabase: SupabaseAdminClient, code: string) {
+  const { error } = await supabase.rpc("release_promo_redemption", { p_code: code });
+  if (error) {
+    console.error(`[promo] failed to release a claim for code ${code}`, error);
+  }
+}
+
+export async function createOrder(rawValues: OrderFormValues): Promise<CreateOrderResult> {
+  const lastSubmission = cookies().get(LAST_SUBMISSION_COOKIE)?.value;
   const now = Date.now();
 
   if (lastSubmission && now - Number(lastSubmission) < 60_000) {
@@ -46,8 +67,7 @@ export async function createOrder(
     };
   }
 
-  const sanitizedValues = sanitizePayload(rawValues);
-  const parsed = orderSchema.safeParse(sanitizedValues);
+  const parsed = orderSchema.safeParse(sanitizePayload(rawValues));
 
   if (!parsed.success) {
     return {
@@ -59,46 +79,60 @@ export async function createOrder(
   const values = parsed.data;
   const supabase = createClient();
 
-  const { data: existingOrder, error: existingOrderError } = await supabase
-    .from("orders")
-    .select("order_ref,access_token")
-    .eq("idempotency_token", values.idempotencyToken)
-    .maybeSingle();
+  const selectedEntries = Object.entries(values.quantities).filter(([, quantity]) => quantity > 0);
+  const selectedIds = selectedEntries.map(([productId]) => productId);
+  const cooldownStartIso = new Date(now - 60_000).toISOString();
 
-  if (existingOrderError) {
+  // Independent reads, run in one round trip instead of four sequential
+  // ones (audit B-9: the database is in Tokyo, so each trip is costly).
+  const [existingResult, productsResult, recentByEmailResult, recentByPhoneResult] =
+    await Promise.all([
+      supabase
+        .from("orders")
+        .select("order_ref,access_token")
+        .eq("idempotency_token", values.idempotencyToken)
+        .maybeSingle(),
+      supabase
+        .from("products")
+        .select("id,name,price,is_available,discount_type,discount_value")
+        .in("id", selectedIds)
+        .eq("is_available", true),
+      supabase
+        .from("orders")
+        .select("id")
+        .eq("customer_email", values.customerEmail)
+        .gte("created_at", cooldownStartIso)
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("orders")
+        .select("id")
+        .eq("customer_phone", values.customerPhone)
+        .gte("created_at", cooldownStartIso)
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  if (existingResult.error) {
     return {
       success: false,
       error: "Unable to verify existing order. Please try again.",
     };
   }
 
-  if (existingOrder?.order_ref) {
-    cookieStore.set("last_submission", String(now), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60,
-    });
+  // Same idempotency token = the same checkout retried (lost response,
+  // double tap): hand back the order that already exists.
+  if (existingResult.data?.order_ref) {
+    setLastSubmissionCookie(now);
     return {
       success: true,
-      orderRef: existingOrder.order_ref,
-      accessToken: existingOrder.access_token,
+      orderRef: existingResult.data.order_ref,
+      accessToken: existingResult.data.access_token,
     };
   }
 
-  const selectedEntries = Object.entries(values.quantities).filter(
-    ([, quantity]) => quantity > 0
-  );
-  const selectedIds = selectedEntries.map(([productId]) => productId);
-
-  const { data: products, error: productsError } = await supabase
-    .from("products")
-    .select("id,name,price,is_available,discount_type,discount_value")
-    .in("id", selectedIds)
-    .eq("is_available", true);
-
-  if (productsError || !products || products.length === 0) {
+  const products = productsResult.data;
+  if (productsResult.error || !products || products.length === 0) {
     return {
       success: false,
       error: "No valid products selected. Please update your order.",
@@ -134,47 +168,27 @@ export async function createOrder(
     };
   }
 
-  const cooldownStartIso = new Date(now - 60_000).toISOString();
-  const { data: recentOrderByEmail, error: recentOrderByEmailError } =
-    await supabase
-      .from("orders")
-      .select("id")
-      .eq("customer_email", values.customerEmail)
-      .gte("created_at", cooldownStartIso)
-      .limit(1)
-      .maybeSingle();
-
-  if (recentOrderByEmailError) {
+  if (recentByEmailResult.error || recentByPhoneResult.error) {
     return {
       success: false,
       error: "Unable to validate recent submissions. Please try again.",
     };
   }
 
-  const { data: recentOrderByPhone, error: recentOrderByPhoneError } =
-    await supabase
-      .from("orders")
-      .select("id")
-      .eq("customer_phone", values.customerPhone)
-      .gte("created_at", cooldownStartIso)
-      .limit(1)
-      .maybeSingle();
-
-  if (recentOrderByPhoneError) {
-    return {
-      success: false,
-      error: "Unable to validate recent submissions. Please try again.",
-    };
-  }
-
-  if (recentOrderByEmail || recentOrderByPhone) {
+  if (recentByEmailResult.data || recentByPhoneResult.data) {
     return {
       success: false,
       error: "Please wait a moment before trying again.",
     };
   }
 
-  const subtotal = orderItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+  // Rounded to cents so it matches exactly what numeric(10,2) stores - the
+  // orders_total_matches_subtotal_check constraint (migration 023)
+  // compares total_price against subtotal - discount_amount.
+  const subtotal =
+    Math.round(
+      orderItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0) * 100
+    ) / 100;
 
   // Promo code: re-validated completely independently of whatever the
   // client claimed (checkPromoCode is the same helper the live cart
@@ -200,10 +214,9 @@ export async function createOrder(
     // SETOF) - PostgREST hands that back as one object or null directly,
     // so no .single()/.maybeSingle() modifier is needed or appropriate
     // here the way it is for a table .select().
-    const { data: claimedPromo, error: claimError } = await supabase.rpc(
-      "claim_promo_redemption",
-      { promo_id: promoCheck.promo.id }
-    );
+    const { data: claimedPromo, error: claimError } = await supabase.rpc("claim_promo_redemption", {
+      promo_id: promoCheck.promo.id,
+    });
 
     if (claimError || !claimedPromo) {
       // Someone else claimed the last slot (or it expired/deactivated)
@@ -238,96 +251,64 @@ export async function createOrder(
     .single();
 
   if (insertError || !insertedOrder?.order_ref) {
+    // The promo slot was claimed for an order that didn't get saved, so
+    // give it back (audit B-3.2).
+    if (appliedPromoCode) {
+      await releasePromoClaim(supabase, appliedPromoCode);
+    }
+
+    // 23505 = unique violation. Two concurrent submits with the same
+    // idempotency token (a double tap on a slow network) both passed the
+    // lookup above; the other one won the insert. That order exists, so
+    // this is a success, not an error (audit B-3.3).
+    if (insertError?.code === "23505") {
+      const { data: winner } = await supabase
+        .from("orders")
+        .select("order_ref,access_token")
+        .eq("idempotency_token", values.idempotencyToken)
+        .maybeSingle();
+
+      if (winner?.order_ref) {
+        setLastSubmissionCookie(now);
+        return { success: true, orderRef: winner.order_ref, accessToken: winner.access_token };
+      }
+    }
+
+    if (insertError) {
+      console.error("[order] insert failed", insertError);
+    }
+
     return {
       success: false,
       error: "We could not submit your order right now. Please try again.",
     };
   }
 
-  cookieStore.set("last_submission", String(now), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60,
-  });
+  setLastSubmissionCookie(now);
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const emailData: OrderEmailData = {
+    orderRef: insertedOrder.order_ref,
+    accessToken: insertedOrder.access_token,
+    customerName: insertedOrder.customer_name,
+    customerEmail: insertedOrder.customer_email,
+    customerPhone: values.customerPhone,
+    items: orderItems,
+    subtotal,
+    discountAmount,
+    promoCode: appliedPromoCode,
+    totalPrice: Number(insertedOrder.total_price),
+  };
 
-  if (resendApiKey) {
-    const resend = new Resend(resendApiKey);
-
-    const orderReceivedElement = OrderReceivedEmail({
-      orderRef: insertedOrder.order_ref,
-      items: orderItems,
-      totalPrice,
-      subtotal,
-      discountAmount,
-      promoCode: appliedPromoCode,
-      paynowNumber,
-      whatsappNumber,
-    });
-
-    const ownerAlertElement = OwnerAlertEmail({
-      orderRef: insertedOrder.order_ref,
-      customerName: insertedOrder.customer_name,
-      customerEmail: insertedOrder.customer_email,
-      customerPhone: values.customerPhone,
-      items: orderItems,
-      totalPrice: Number(insertedOrder.total_price),
-      subtotal,
-      discountAmount,
-      promoCode: appliedPromoCode,
-      adminDashboardUrl: `${siteUrl}/admin/orders`,
-      whatsappNumber,
-    });
-
-    // Both html and text (plainText: true) rendered from the same
-    // element for each template - an HTML-only send (no text
-    // alternative at all) is itself a spam-score signal, on top of
-    // being worse for any reader whose client prefers plain text.
-    const [emailHtml, emailText, ownerEmailHtml, ownerEmailText] = await Promise.all([
-      render(orderReceivedElement),
-      render(orderReceivedElement, { plainText: true }),
-      render(ownerAlertElement),
-      render(ownerAlertElement, { plainText: true }),
-    ]);
-
-    try {
-      await resend.emails.send({
-        from: emailFrom,
-        to: insertedOrder.customer_email,
-        // So a customer hitting Reply reaches the owner, not an
-        // unmonitored orders@ sender address.
-        replyTo: ownerEmail,
-        subject: `Order #${insertedOrder.order_ref} Received!`,
-        html: emailHtml,
-        text: emailText,
-      });
-
-      await resend.emails.send({
-        from: emailFrom,
-        to: ownerEmail,
-        // So the owner can just hit Reply to email the customer back.
-        replyTo: insertedOrder.customer_email,
-        subject: `New Order: #${insertedOrder.order_ref}`,
-        html: ownerEmailHtml,
-        text: ownerEmailText,
-      });
-    } catch (emailError) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(
-          "=== ORDER EMAIL DISPATCH FAILURE (order still succeeded) ===\n" +
-            `Order ref: ${insertedOrder.order_ref}\n` +
-            "Error:",
-          emailError
-        );
-      } else {
-        console.error("Failed to send order emails", emailError);
-      }
-    }
-  }
+  // Both sent in parallel and independently: one failing can't stop the
+  // other (it used to - the owner alert was skipped whenever the customer
+  // email threw). Failures are logged inside the helpers and never fail
+  // the order, which is already saved; the admin can resend the
+  // customer's confirmation from the dashboard.
+  const resend = new Resend(resendApiKey);
+  await Promise.all([
+    sendOrderReceivedEmail(resend, emailData),
+    sendOwnerAlertEmail(resend, emailData),
+  ]);
 
   return {
     success: true,

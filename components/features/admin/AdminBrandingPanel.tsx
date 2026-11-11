@@ -3,20 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { resetHeaderImage, setHeaderImage } from "@/app/actions/admin";
+import { assertOk } from "@/lib/admin-client";
+import type { AdminBranding } from "@/types/admin";
 import CloudinaryImageField from "@/components/features/admin/CloudinaryImageField";
 import { HeaderMascot, HeaderWordmark } from "@/components/layout/HeaderLogo";
 import { defaultHeaderMascot } from "@/config/site";
 import type { BrandingSlot } from "@/lib/validations/branding";
 import type { BrandImage } from "@/types/models";
-
-interface AdminBranding {
-  header_mascot_url: string | null;
-  header_mascot_width: number | null;
-  header_mascot_height: number | null;
-  header_wordmark_url: string | null;
-  header_wordmark_width: number | null;
-  header_wordmark_height: number | null;
-}
 
 interface ImageDraft {
   url: string;
@@ -51,10 +44,10 @@ const SLOT_COPY: Record<
   },
   wordmark: {
     title: "Header Wordmark",
-    help: "Replaces the \"ONE CRUNCH LADY\" text next to the mascot. Transparent PNG works best. Shown up to 64px tall and 340px wide.",
+    help: 'Replaces the "ONE CRUNCH LADY" text next to the mascot. Transparent PNG works best. Shown up to 64px tall and 340px wide.',
     upload: "Upload Wordmark Image",
     reset: "Reset to Text",
-    resetConfirm: "Go back to the \"ONE CRUNCH LADY\" text?",
+    resetConfirm: 'Go back to the "ONE CRUNCH LADY" text?',
   },
 };
 
@@ -122,11 +115,12 @@ function BrandingSlotCard({
     }
     setIsBusy(true);
     try {
-      await setHeaderImage(slot, {
+      const result = await setHeaderImage(slot, {
         image_url: draftImage.url,
         image_width: draftImage.width,
         image_height: draftImage.height,
       });
+      assertOk(result);
       onFeedback(`${copy.title} saved.`);
       setDraft(EMPTY_DRAFT);
       router.refresh();
@@ -143,7 +137,7 @@ function BrandingSlotCard({
     }
     setIsBusy(true);
     try {
-      await resetHeaderImage(slot);
+      assertOk(await resetHeaderImage(slot));
       onFeedback(`${copy.title} reset.`);
       setDraft(EMPTY_DRAFT);
       router.refresh();
@@ -174,7 +168,7 @@ function BrandingSlotCard({
             ? `Custom image (${saved.width}x${saved.height}).`
             : slot === "mascot"
               ? "Using the original mascot."
-              : "Using the \"ONE CRUNCH LADY\" text."}
+              : 'Using the "ONE CRUNCH LADY" text.'}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">

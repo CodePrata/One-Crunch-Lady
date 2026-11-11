@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { paynowNumber } from "@/config/server";
 import { buildPayNowQrPayload, renderPayNowQrSvg } from "@/lib/paynow";
 import { createClient } from "@/lib/supabase/server";
+import { whatsappNumber } from "@/config/site";
 
 interface SuccessPageProps {
   params: {
@@ -15,7 +16,6 @@ interface SuccessPageProps {
 
 export default async function OrderSuccessPage({ params, searchParams }: SuccessPageProps) {
   const supabase = createClient();
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
   const { orderRef } = params;
   const accessToken = searchParams.t;
 
@@ -44,7 +44,9 @@ export default async function OrderSuccessPage({ params, searchParams }: Success
   }
 
   const formattedTotal = Number(data.total_price).toFixed(2);
-  const hasDiscount = Boolean(data.promo_code && data.discount_amount && Number(data.discount_amount) > 0);
+  const hasDiscount = Boolean(
+    data.promo_code && data.discount_amount && Number(data.discount_amount) > 0
+  );
   const whatsappMessage = encodeURIComponent(
     `Hi One Crunch Lady, here is my payment proof for Order #${data.order_ref}!`
   );

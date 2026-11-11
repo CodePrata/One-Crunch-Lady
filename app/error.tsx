@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { whatsappNumber } from "@/config/site";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -8,10 +9,7 @@ interface ErrorPageProps {
 }
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const whatsappHref = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "https://wa.me/";
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
 
   // Full detail stays in the browser console for debugging; the page
   // itself never renders the raw error message, which may contain
@@ -23,9 +21,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   return (
     <main className="responsive-shell px-4 py-14 tablet:px-6 desktop:px-8">
       <section className="rounded-2xl border-[3px] border-cookie-brown bg-flour-white p-6">
-        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">
-          Error
-        </h1>
+        <h1 className="font-display text-5xl uppercase text-cookie-brown-dark">Error</h1>
         <p className="mt-3 text-cookie-brown-dark">
           Something went wrong. Tap here to order via WhatsApp instead.
         </p>

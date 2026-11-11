@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dpoEmail } from "@/config/server";
-import { dpoName } from "@/config/site";
+import { dpoName, whatsappNumber } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -15,10 +15,7 @@ export const metadata: Metadata = {
 const PRIVACY_POLICY_LAST_UPDATED = "23 September 2026";
 
 export default function PrivacyPage() {
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const whatsappHref = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "https://wa.me/";
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
 
   return (
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
@@ -30,8 +27,8 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-2 text-sm text-cookie-brown-dark">
-          Last updated {PRIVACY_POLICY_LAST_UPDATED}. This notice describes how we handle
-          personal data under Singapore&rsquo;s Personal Data Protection Act (PDPA).
+          Last updated {PRIVACY_POLICY_LAST_UPDATED}. This notice describes how we handle personal
+          data under Singapore&rsquo;s Personal Data Protection Act (PDPA).
         </p>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
@@ -43,8 +40,8 @@ export default function PrivacyPage() {
             <strong className="text-cookie-brown-dark">name</strong>,{" "}
             <strong className="text-cookie-brown-dark">email address</strong>, and{" "}
             <strong className="text-cookie-brown-dark">phone number</strong>. We use this
-            information solely to fulfil your order, contact you about your purchase,
-            and send you transactional updates related to that order.
+            information solely to fulfil your order, contact you about your purchase, and send you
+            transactional updates related to that order.
           </p>
         </section>
 
@@ -53,9 +50,9 @@ export default function PrivacyPage() {
             How we use your data
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Your personal data is used only for order processing, payment coordination,
-            and communication about your order. We do not use it for unrelated marketing
-            unless you have separately agreed to that.
+            Your personal data is used only for order processing, payment coordination, and
+            communication about your order. We do not use it for unrelated marketing unless you have
+            separately agreed to that.
           </p>
         </section>
 
@@ -64,11 +61,11 @@ export default function PrivacyPage() {
             Sharing and sale of data
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            We <strong className="text-cookie-brown-dark">do not sell</strong> your personal
-            data. We <strong className="text-cookie-brown-dark">do not share</strong> it with
-            third parties for their own marketing. We may use trusted service providers
-            (for example, hosting, email delivery, or payment-related tools) strictly as
-            needed to operate the shop, and only under appropriate safeguards.
+            We <strong className="text-cookie-brown-dark">do not sell</strong> your personal data.
+            We <strong className="text-cookie-brown-dark">do not share</strong> it with third
+            parties for their own marketing. We may use trusted service providers (for example,
+            hosting, email delivery, or payment-related tools) strictly as needed to operate the
+            shop, and only under appropriate safeguards.
           </p>
         </section>
 
@@ -77,32 +74,32 @@ export default function PrivacyPage() {
             Service providers & where your data goes
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            We use a small number of service providers (processors) to run the shop.
-            Each only receives the data it needs to do its job:
+            We use a small number of service providers (processors) to run the shop. Each only
+            receives the data it needs to do its job:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-base leading-relaxed text-cookie-brown-dark">
             <li>
-              <strong className="text-cookie-brown-dark">Supabase</strong> - hosts our
-              database and admin login, so it holds your order and contact details.
+              <strong className="text-cookie-brown-dark">Supabase</strong> - hosts our database and
+              admin login, so it holds your order and contact details.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Netlify</strong> - hosts this
-              website and serves every page you view.
+              <strong className="text-cookie-brown-dark">Netlify</strong> - hosts this website and
+              serves every page you view.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Resend</strong> - sends the
-              transactional emails about your order (received, paid, ready for pickup).
+              <strong className="text-cookie-brown-dark">Resend</strong> - sends the transactional
+              emails about your order (received, paid, ready for pickup).
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Cloudinary</strong> - hosts our
-              product photos; it does not receive your personal data.
+              <strong className="text-cookie-brown-dark">Cloudinary</strong> - hosts our product
+              photos; it does not receive your personal data.
             </li>
           </ul>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            These providers operate on servers outside Singapore, so your personal data
-            may be transferred to and processed in other countries as part of running
-            the shop. We only use providers that give equivalent protection to your data
-            wherever it is processed, as required under the PDPA.
+            These providers operate on servers outside Singapore, so your personal data may be
+            transferred to and processed in other countries as part of running the shop. We only use
+            providers that give equivalent protection to your data wherever it is processed, as
+            required under the PDPA.
           </p>
         </section>
 
@@ -111,54 +108,48 @@ export default function PrivacyPage() {
             Cookies & local storage
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            We do not use a cookie consent banner because everything we store is
-            strictly necessary or functional - there is no advertising or tracking
-            cookie on this site. Here is everything we store on your device:
+            We do not use a cookie consent banner because everything we store is strictly necessary
+            or functional - there is no advertising or tracking cookie on this site. Here is
+            everything we store on your device:
           </p>
           <ul className="list-disc space-y-1 pl-5 text-base leading-relaxed text-cookie-brown-dark">
             <li>
-              <strong className="text-cookie-brown-dark">last_submission</strong> - a
-              short-lived, security-only cookie that stops the order form being
-              submitted twice in a row.
+              <strong className="text-cookie-brown-dark">last_submission</strong> - a short-lived,
+              security-only cookie that stops the order form being submitted twice in a row.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Supabase auth cookies</strong> -
-              set only if you are the shop owner signed in to the admin dashboard.
+              <strong className="text-cookie-brown-dark">Supabase auth cookies</strong> - set only
+              if you are the shop owner signed in to the admin dashboard.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">splash_dismissed</strong> - kept
-              in your browser&rsquo;s local storage (not a cookie) to remember you have
-              seen the intro screen, so it does not show again.
+              <strong className="text-cookie-brown-dark">splash_dismissed</strong> - kept in your
+              browser&rsquo;s local storage (not a cookie) to remember you have seen the intro
+              screen, so it does not show again.
             </li>
             <li>
-              <strong className="text-cookie-brown-dark">Your cart</strong> - kept in
-              your browser&rsquo;s local storage so it survives a page refresh; it never
-              leaves your device until you check out.
+              <strong className="text-cookie-brown-dark">Your cart</strong> - kept in your
+              browser&rsquo;s local storage so it survives a page refresh; it never leaves your
+              device until you check out.
             </li>
           </ul>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
-          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Retention
-          </h2>
+          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">Retention</h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             We run two separate retention clocks. Your{" "}
             <strong className="text-cookie-brown-dark">
               name, email address, and phone number
             </strong>{" "}
             are anonymised automatically{" "}
-            <strong className="text-cookie-brown-dark">two (2) years</strong> after your
-            order. Separately, Singapore&rsquo;s IRAS record-keeping requirements mean we keep
-            the{" "}
-            <strong className="text-cookie-brown-dark">
-              financial details of the order
-            </strong>{" "}
+            <strong className="text-cookie-brown-dark">two (2) years</strong> after your order.
+            Separately, Singapore&rsquo;s IRAS record-keeping requirements mean we keep the{" "}
+            <strong className="text-cookie-brown-dark">financial details of the order</strong>{" "}
             (order reference, items ordered, and total paid) for{" "}
-            <strong className="text-cookie-brown-dark">five (5) years</strong>, as required
-            by law. Only your personal data is removed at the two-year mark - the order
-            record itself, stripped of anything that identifies you, is kept for the
-            longer period the law requires.
+            <strong className="text-cookie-brown-dark">five (5) years</strong>, as required by law.
+            Only your personal data is removed at the two-year mark - the order record itself,
+            stripped of anything that identifies you, is kept for the longer period the law
+            requires.
           </p>
         </section>
 
@@ -167,9 +158,9 @@ export default function PrivacyPage() {
             Your rights & deletion requests
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Under the PDPA, you may request access to or correction of your personal data,
-            or ask us to stop using it in certain ways. You may also request deletion of
-            your personal data where applicable.
+            Under the PDPA, you may request access to or correction of your personal data, or ask us
+            to stop using it in certain ways. You may also request deletion of your personal data
+            where applicable.
           </p>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             To request deletion or to exercise your rights, contact us via{" "}
@@ -181,8 +172,8 @@ export default function PrivacyPage() {
             >
               WhatsApp
             </a>
-            . Please include your order reference or the email you used when ordering so
-            we can verify your request.
+            . Please include your order reference or the email you used when ordering so we can
+            verify your request.
           </p>
         </section>
 
@@ -191,8 +182,8 @@ export default function PrivacyPage() {
             Data Protection Officer
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Under the PDPA we have designated a Data Protection Officer responsible for
-            this policy and for handling your requests.
+            Under the PDPA we have designated a Data Protection Officer responsible for this policy
+            and for handling your requests.
           </p>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             <strong className="text-cookie-brown-dark">{dpoName}</strong>

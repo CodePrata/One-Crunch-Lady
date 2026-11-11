@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { whatsappNumber } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy",
@@ -8,10 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function RefundPage() {
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const whatsappHref = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "https://wa.me/";
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : "https://wa.me/";
 
   return (
     <main className="responsive-shell px-4 py-10 tablet:px-6 desktop:px-8">
@@ -23,9 +21,8 @@ export default function RefundPage() {
           Refund & Cancellation Policy
         </h1>
         <p className="mt-2 text-sm text-cookie-brown-dark">
-          We bake to order, in small batches, once payment is confirmed. Because of that,
-          this policy is stricter than a typical retail return policy - please read it
-          before you pay.
+          We bake to order, in small batches, once payment is confirmed. Because of that, this
+          policy is stricter than a typical retail return policy - please read it before you pay.
         </p>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
@@ -35,24 +32,21 @@ export default function RefundPage() {
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             You can cancel for a full refund if you tell us{" "}
             <strong className="text-cookie-brown-dark">at least 24 hours before</strong> your
-            scheduled pickup time. Message us on WhatsApp with your order reference to
-            cancel.
+            scheduled pickup time. Message us on WhatsApp with your order reference to cancel.
           </p>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            Cancellations made less than 24 hours before pickup may not be refundable,
-            since baking for your order may already be underway. We will always tell you
-            if that is the case before declining a refund.
+            Cancellations made less than 24 hours before pickup may not be refundable, since baking
+            for your order may already be underway. We will always tell you if that is the case
+            before declining a refund.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
-          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Missed pickups
-          </h2>
+          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">Missed pickups</h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            If an order is not collected on the scheduled date and you have not arranged
-            a new pickup time with us in advance, it is treated as a no-show. Because our
-            cookies are perishable and made to order, no-show orders are{" "}
+            If an order is not collected on the scheduled date and you have not arranged a new
+            pickup time with us in advance, it is treated as a no-show. Because our cookies are
+            perishable and made to order, no-show orders are{" "}
             <strong className="text-cookie-brown-dark">not eligible for a refund</strong>.
           </p>
         </section>
@@ -63,23 +57,21 @@ export default function RefundPage() {
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             Our cookies are perishable, freshly baked goods, so we{" "}
-            <strong className="text-cookie-brown-dark">cannot accept returns</strong> once an
-            order has been collected. This is a food-safety and hygiene requirement, not
-            a judgement on your order.
+            <strong className="text-cookie-brown-dark">cannot accept returns</strong> once an order
+            has been collected. This is a food-safety and hygiene requirement, not a judgement on
+            your order.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
-          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Quality issues
-          </h2>
+          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">Quality issues</h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            If something is genuinely wrong with your order - wrong item, missing item,
-            or a quality problem - message us on WhatsApp within{" "}
-            <strong className="text-cookie-brown-dark">24 hours of collection</strong> with a
-            photo and your order reference. We will sort out a replacement or a refund
-            for the affected item at our discretion. We are not able to action reports
-            made after that window, since freshness can no longer be verified.
+            If something is genuinely wrong with your order - wrong item, missing item, or a quality
+            problem - message us on WhatsApp within{" "}
+            <strong className="text-cookie-brown-dark">24 hours of collection</strong> with a photo
+            and your order reference. We will sort out a replacement or a refund for the affected
+            item at our discretion. We are not able to action reports made after that window, since
+            freshness can no longer be verified.
           </p>
         </section>
 
@@ -88,18 +80,16 @@ export default function RefundPage() {
             How refunds are paid
           </h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
-            There is no payment gateway here - you pay by PayNow and we confirm it by
-            hand, so refunds work the same way. An approved refund is returned by PayNow
-            to the same mobile number the payment came from, within{" "}
-            <strong className="text-cookie-brown-dark">3-5 business days</strong> of approval.
-            We cannot refund to a different PayNow number or bank account.
+            There is no payment gateway here - you pay by PayNow and we confirm it by hand, so
+            refunds work the same way. An approved refund is returned by PayNow to the same mobile
+            number the payment came from, within{" "}
+            <strong className="text-cookie-brown-dark">3-5 business days</strong> of approval. We
+            cannot refund to a different PayNow number or bank account.
           </p>
         </section>
 
         <section className="mt-8 space-y-4 border-t-2 border-cookie-brown pt-8">
-          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">
-            Contact
-          </h2>
+          <h2 className="font-display text-3xl uppercase text-cookie-brown-dark">Contact</h2>
           <p className="text-base leading-relaxed text-cookie-brown-dark">
             For a cancellation, a missed pickup, or a quality issue, reach us on{" "}
             <a

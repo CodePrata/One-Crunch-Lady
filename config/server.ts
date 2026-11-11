@@ -52,6 +52,16 @@ const serverEnvSchema = z.object({
   CLOUDINARY_API_SECRET: z
     .string()
     .min(1, "CLOUDINARY_API_SECRET is required to sign admin image uploads."),
+  // The two public halves are checked here too: without the site key the
+  // Turnstile widget never renders, so every order would be refused; without
+  // the API key the upload widget refuses to open. Failing the build is
+  // better than either of those surfacing on the live site.
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z
+    .string()
+    .min(1, "NEXT_PUBLIC_TURNSTILE_SITE_KEY is required, or no customer can check out."),
+  NEXT_PUBLIC_CLOUDINARY_API_KEY: z
+    .string()
+    .min(1, "NEXT_PUBLIC_CLOUDINARY_API_KEY is required for signed admin image uploads."),
 });
 
 const parsed = serverEnvSchema.safeParse({
@@ -62,6 +72,8 @@ const parsed = serverEnvSchema.safeParse({
   DPO_EMAIL: process.env.DPO_EMAIL,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  NEXT_PUBLIC_CLOUDINARY_API_KEY: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
 });
 
 if (!parsed.success) {
